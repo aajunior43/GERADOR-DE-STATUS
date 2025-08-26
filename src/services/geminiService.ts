@@ -5,7 +5,7 @@ const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(API_KEY);
 
 export interface StatusRequest {
-  theme: string; // Mudança: agora é tema em vez de texto
+  theme: string;
   style?: 'modern' | 'elegant' | 'minimalist' | 'vibrant' | 'dark';
   aspectRatio?: '9:16' | '1:1' | '16:9';
   backgroundColor?: string;
@@ -38,80 +38,66 @@ class GeminiService {
   private textModel;
 
   constructor() {
-    // Usar o modelo mais recente disponível
     this.textModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
   }
 
   /**
-   * Gera conteúdo usando a API do Gemini com base no tema fornecido pelo usuário
+   * Gera conteúdo usando a API do Gemini com base no tema fornecido
    */
-  private async generateContentWithGemini(theme: string, includeHashtags: boolean = true, includeComplementaryPhrase: boolean = true): Promise<GeneratedContent> {
+  private async generateContentWithGemini(theme: string, includeHashtags: boolean = true, includeComplementaryPhrase: boolean = false): Promise<GeneratedContent> {
     try {
-      // Construir requisitos dinamicamente com base nas opções
-      let requirements = [
-        '1. O status deve ser inspirador e visualmente atrativo',
+      const requirements = [
+        '1. Crie um status inspirador e motivacional baseado no tema',
         '2. Use emojis apropriados para enriquecer o conteúdo',
-        '3. Formate o texto com quebras de linha adequadas para melhor legibilidade',
-        '4. Mantenha o texto conciso e impactante',
-        '5. Inclua uma mensagem positiva ou motivacional',
-        '6. NÃO inclua um título separado - o status deve ser uma mensagem coesa'
+        '3. Formate o texto com quebras de linha para melhor legibilidade',
+        '4. Mantenha o texto conciso (máximo 3-4 linhas)',
+        '5. Seja positivo e inspirador',
+        '6. NÃO inclua frases complementares ou comentários adicionais',
+        '7. NÃO inclua hashtags a menos que solicitado'
       ];
 
-      if (!includeHashtags) {
-        requirements.push('7. NÃO use hashtags');
+      if (includeHashtags) {
+        requirements.push('8. Inclua 2-3 hashtags relevantes no final');
       }
 
-      if (!includeComplementaryPhrase) {
-        requirements.push('8. NÃO inclua frases complementares ou comentários além do status principal');
-      }
+      const prompt = `Você é um criador de status profissionais para redes sociais.
 
-      // Preparar o prompt para a IA
-      let prompt = 'Você é um criador de status profissionais para redes sociais. ';
-      prompt += 'Crie um status com base no seguinte tema: "' + theme + '"\n\n';
-      prompt += 'Requisitos:\n';
-      prompt += requirements.join('\n') + '\n\n';
-      prompt += 'Exemplo de formato:\n';
-      prompt += '"Acredite no seu potencial e siga em frente. \n';
-      prompt += 'Cada passo é uma vitória.\n\n';
-      prompt += '🚀"\n\n';
-      prompt += 'Além disso, inclua no final do texto:\n';
-      prompt += '- Uma linha com "background: #HEX" (substitua HEX pela cor de fundo apropriada)\n';
-      prompt += '- Uma linha com "text: #HEX" (substitua HEX pela cor de texto que contraste bem)\n\n';
-      prompt += 'Exemplo completo:\n';
-      prompt += '"Acredite no seu potencial e siga em frente. \n';
-      prompt += 'Cada passo é uma vitória.\n\n';
-      prompt += '🚀\n\n';
-      prompt += 'background: #1a535c\n';
-      prompt += 'text: #f7fff7"\n\n';
-      prompt += 'Retorne APENAS o conteúdo do status com as linhas de cores, nada além.';
+Crie um status inspirador baseado no tema: "${theme}"
 
-      // Chamar a API do Gemini
+Requisitos:
+${requirements.join('\n')}
+
+Formato desejado:
+"Texto inspirador aqui
+com quebras de linha
+apropriadas ✨"
+
+${includeHashtags ? 'Exemplo com hashtags:\n"Texto inspirador aqui\ncom quebras de linha\napropriadas ✨\n\n#Motivação #Sucesso"' : ''}
+
+Além disso, inclua no final:
+- background: #HEX (cor de fundo apropriada)
+- text: #HEX (cor de texto que contraste bem)
+
+Retorne APENAS o conteúdo do status com as linhas de cores.`;
+
       const result = await this.textModel.generateContent(prompt);
       const response = await result.response;
       const rawText = response.text();
 
-      // Extrair texto e cores da resposta da IA
-      let { text, backgroundColor, textColor } = this.extractColorsFromText(rawText);
-
-      // Se não conseguirmos extrair as cores, usar cores padrão
-      if (!backgroundColor || !textColor) {
-        backgroundColor = backgroundColor || '#1e3a8a';
-        textColor = textColor || '#dbeafe';
-      }
+      const { text, backgroundColor, textColor } = this.extractColorsFromText(rawText);
 
       return {
-        text: text.trim(),
-        backgroundColor,
-        textColor,
+        text: text || this.generateFallbackContent(theme),
+        backgroundColor: backgroundColor || '#1e3a8a',
+        textColor: textColor || '#dbeafe',
         fontSize: 18,
         fontFamily: 'Inter'
       };
     } catch (error) {
       console.error('Erro ao gerar conteúdo com Gemini:', error);
       
-      // Fallback para conteúdo padrão se a API falhar
       return {
-        text: '"' + theme.charAt(0).toUpperCase() + theme.slice(1) + ' é a força que transforma sonhos em realidade.\n\nAcredite em si mesmo! 🌟"',
+        text: this.generateFallbackContent(theme),
         backgroundColor: '#1e3a8a',
         textColor: '#dbeafe',
         fontSize: 18,
@@ -138,6 +124,19 @@ class GeminiService {
       backgroundColor: bgMatch ? bgMatch[1] : undefined,
       textColor: textMatch ? textMatch[1] : undefined
     };
+  }
+
+  /**
+   * Gera conteúdo de fallback limpo e profissional
+   */
+  private generateFallbackContent(theme: string): string {
+    const fallbackTemplates = [
+      `✨ ${theme.charAt(0).toUpperCase() + theme.slice(1)} ✨\n\n"${theme.charAt(0).toUpperCase() + theme.slice(1)} é a chave\npara transformar sonhos\nem realidade."`,
+      `🌟 ${theme.charAt(0).toUpperCase() + theme.slice(1)} 🌟\n\n"Em cada ${theme.toLowerCase()}\nreside o poder de\nmudar o mundo."`,
+      `💫 ${theme.charAt(0).toUpperCase() + theme.slice(1)} 💫\n\n"${theme.charAt(0).toUpperCase() + theme.slice(1)} não é apenas\numa palavra, é um\nestilo de vida."`
+    ];
+    
+    return fallbackTemplates[Math.floor(Math.random() * fallbackTemplates.length)];
   }
 
   /**
@@ -297,24 +296,28 @@ class GeminiService {
   }
 
   /**
-   * Obtém histórico de geracões (para implementação futura)
+   * Obtém histórico de gerações (para implementação futura)
    */
   async getHistory(): Promise<StatusResponse[]> {
-    // Implementar com localStorage ou backend
-    const history = localStorage.getItem('statusai_history');
-    return history ? JSON.parse(history) : [];
+    if (typeof window !== 'undefined') {
+      const history = localStorage.getItem('statusai_history');
+      return history ? JSON.parse(history) : [];
+    }
+    return [];
   }
 
   /**
    * Salva no histórico (para implementação futura)
    */
   async saveToHistory(status: StatusResponse): Promise<void> {
-    const history = await this.getHistory();
-    history.unshift(status);
-    
-    // Manter apenas os últimos 50 itens
-    const trimmedHistory = history.slice(0, 50);
-    localStorage.setItem('statusai_history', JSON.stringify(trimmedHistory));
+    if (typeof window !== 'undefined') {
+      const history = await this.getHistory();
+      history.unshift(status);
+      
+      // Manter apenas os últimos 50 itens
+      const trimmedHistory = history.slice(0, 50);
+      localStorage.setItem('statusai_history', JSON.stringify(trimmedHistory));
+    }
   }
 }
 
