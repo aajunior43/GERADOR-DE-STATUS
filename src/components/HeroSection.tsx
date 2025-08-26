@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Sparkles, Star, Zap } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 const HeroSection = () => {
   const [text, setText] = useState('');
@@ -23,8 +23,6 @@ const HeroSection = () => {
     { id: 10, x: 20, y: 50, delay: 1.8, duration: 5.3 },
     { id: 11, x: 80, y: 25, delay: 2.3, duration: 4.9 }
   ];
-
-  const features = [];
 
   const handleCreateStatus = () => {
     if (!text.trim()) return;
@@ -76,7 +74,6 @@ const HeroSection = () => {
       />
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-
 
 
 
