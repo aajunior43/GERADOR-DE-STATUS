@@ -6,18 +6,28 @@ const ImprovedCreator = () => {
   const [theme, setTheme] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<any>(null);
+  const [selectedStyle, setSelectedStyle] = useState<'modern' | 'elegant' | 'minimalist' | 'vibrant' | 'dark'>('modern');
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Categorias predefinidas
+  // Categorias predefinidas melhoradas
   const predefinedCategories = [
-    { id: 'motivacao', name: 'Motivação', emoji: '💪' },
-    { id: 'amor', name: 'Amor', emoji: '❤️' },
-    { id: 'sucesso', name: 'Sucesso', emoji: '🏆' },
-    { id: 'foco', name: 'Foco', emoji: '🎯' },
-    { id: 'gratidao', name: 'Gratidão', emoji: '🙏' },
-    { id: 'paz', name: 'Paz', emoji: '🕊️' },
-    { id: 'forca', name: 'Força', emoji: '⚡' },
-    { id: 'esperanca', name: 'Esperança', emoji: '🌟' },
+    { id: 'motivacao', name: 'Motivação', emoji: '💪', color: 'from-red-500 to-orange-500' },
+    { id: 'amor', name: 'Amor', emoji: '❤️', color: 'from-pink-500 to-rose-500' },
+    { id: 'sucesso', name: 'Sucesso', emoji: '🏆', color: 'from-yellow-500 to-amber-500' },
+    { id: 'foco', name: 'Foco', emoji: '🎯', color: 'from-blue-500 to-indigo-500' },
+    { id: 'gratidao', name: 'Gratidão', emoji: '🙏', color: 'from-green-500 to-emerald-500' },
+    { id: 'paz', name: 'Paz', emoji: '🕊️', color: 'from-cyan-500 to-blue-500' },
+    { id: 'forca', name: 'Força', emoji: '⚡', color: 'from-purple-500 to-violet-500' },
+    { id: 'esperanca', name: 'Esperança', emoji: '🌟', color: 'from-yellow-400 to-orange-400' },
+  ];
+
+  // Estilos disponíveis
+  const availableStyles = [
+    { id: 'modern', name: 'Moderno', icon: '✨' },
+    { id: 'elegant', name: 'Elegante', icon: '👑' },
+    { id: 'minimalist', name: 'Minimalista', icon: '⚪' },
+    { id: 'vibrant', name: 'Vibrante', icon: '🎨' },
+    { id: 'dark', name: 'Escuro', icon: '🌙' },
   ];
 
   const generateStatus = async () => {
@@ -31,7 +41,7 @@ const ImprovedCreator = () => {
       
       const response = await geminiService.generateStatus({
         theme,
-        style: 'modern',
+        style: selectedStyle,
         aspectRatio: '9:16',
       });
       
@@ -39,15 +49,9 @@ const ImprovedCreator = () => {
       
     } catch (error) {
       console.error('Erro ao gerar status:', error);
-      // Fallback com conteúdo básico
+      // Fallback com conteúdo básico melhorado
       const fallbackContent = {
-        text: `✨ ${theme.toUpperCase()} ✨
-
-"${theme.charAt(0).toUpperCase() + theme.slice(1)} é a força
-que transforma sonhos
-em realidade."
-
-VIVA COM PROPÓSITO! 🚀`,
+        text: `✨ ${theme.toUpperCase()} ✨\n\n"${theme.charAt(0).toUpperCase() + theme.slice(1)} é a chave\npara transformar sonhos\nem realidade."`,
         backgroundColor: '#1a1a2e',
         textColor: '#f39c12',
         fontSize: 20,
@@ -286,10 +290,35 @@ VIVA COM PROPÓSITO! 🚀`,
                     key={item.id}
                     onClick={() => selectPredefinedCategory(item.name)}
                     disabled={isGenerating}
-                    className="flex flex-col items-center justify-center p-2 sm:p-3 bg-gray-800/50 backdrop-blur-sm border border-gray-600/50 rounded-lg text-gray-300 hover:text-white hover:border-yellow-500/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex flex-col items-center justify-center p-2 sm:p-3 bg-gray-800/50 backdrop-blur-sm border border-gray-600/50 rounded-lg text-gray-300 hover:text-white hover:border-yellow-500/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group"
                   >
-                    <span className="text-base sm:text-lg mb-1">{item.emoji}</span>
-                    <span className="text-xs sm:text-sm">{item.name}</span>
+                    <span className="text-base sm:text-lg mb-1 group-hover:scale-110 transition-transform duration-200">{item.emoji}</span>
+                    <span className="text-xs sm:text-sm font-medium">{item.name}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Seção de seleção de estilo */}
+            <div className="mb-6">
+              <h3 className="text-white font-semibold mb-3 text-sm sm:text-base flex items-center">
+                <span className="mr-2">🎨</span>
+                Escolha o estilo
+              </h3>
+              <div className="grid grid-cols-5 gap-2">
+                {availableStyles.map((style) => (
+                  <button
+                    key={style.id}
+                    onClick={() => setSelectedStyle(style.id)}
+                    disabled={isGenerating}
+                    className={`flex flex-col items-center justify-center p-2 sm:p-3 rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed group ${
+                      selectedStyle === style.id
+                        ? 'bg-yellow-500 text-black border-2 border-yellow-400'
+                        : 'bg-gray-800/50 backdrop-blur-sm border border-gray-600/50 text-gray-300 hover:text-white hover:border-yellow-500/50'
+                    }`}
+                  >
+                    <span className="text-base sm:text-lg mb-1 group-hover:scale-110 transition-transform duration-200">{style.icon}</span>
+                    <span className="text-xs sm:text-sm font-medium">{style.name}</span>
                   </button>
                 ))}
               </div>

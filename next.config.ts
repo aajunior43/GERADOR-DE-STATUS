@@ -1,19 +1,49 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
-    ignoreDuringBuilds: true,
+  // Configurações de otimização
+  experimental: {
+    optimizePackageImports: ['@google/generative-ai', 'framer-motion', 'lucide-react'],
   },
-  typescript: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has type errors.
-    ignoreBuildErrors: true,
+  
+  // Configurações de imagens
+  images: {
+    domains: ['placehold.co'],
+    formats: ['image/webp', 'image/avif'],
   },
-  turbopack: {
-    // Configurações específicas do Turbopack
+  
+  // Configurações de segurança
+  headers: async () => {
+    return [
+      {
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'X-Frame-Options',
+            value: 'DENY',
+          },
+          {
+            key: 'X-Content-Type-Options',
+            value: 'nosniff',
+          },
+          {
+            key: 'Referrer-Policy',
+            value: 'origin-when-cross-origin',
+          },
+        ],
+      },
+    ];
   },
+  
+  // Configurações de compressão
+  compress: true,
+  
+  // Configurações de PWA (opcional)
+  // pwa: {
+  //   dest: 'public',
+  //   register: true,
+  //   skipWaiting: true,
+  // },
 };
 
 export default nextConfig;
