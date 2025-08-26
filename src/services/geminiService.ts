@@ -1,327 +1,424 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { retry, sleep } from '@/lib/utils';
+import type { StatusRequest, GeneratedContent, StatusResponse, AppError } from '@/types';
 
-// Configuração da API do Gemini
+// Configuration
 const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
 const genAI = new GoogleGenerativeAI(API_KEY);
 
-export interface StatusRequest {
-  theme: string; // Mudança: agora é tema em vez de texto
-  style?: 'modern' | 'elegant' | 'minimalist' | 'vibrant' | 'dark';
-  aspectRatio?: '9:16' | '1:1' | '16:9';
-  backgroundColor?: string;
-  textColor?: string;
-  fontSize?: number;
-  fontFamily?: string;
-  includeHashtags?: boolean;
-  includeComplementaryPhrase?: boolean;
-}
+// Error codes
+const ERROR_CODES = {
+  API_KEY_MISSING: 'API_KEY_MISSING',
+  INVALID_REQUEST: 'INVALID_REQUEST',
+  API_ERROR: 'API_ERROR',
+  NETWORK_ERROR: 'NETWORK_ERROR',
+  RATE_LIMIT: 'RATE_LIMIT',
+  CONTENT_FILTER: 'CONTENT_FILTER',
+  TIMEOUT: 'TIMEOUT',
+} as const;
 
-export interface GeneratedContent {
-  text: string;
-  backgroundColor: string;
-  textColor: string;
-  fontSize: number;
-  fontFamily: string;
-}
+// Default configurations
+const DEFAULT_CONFIG = {
+  maxRetries: 3,
+  timeout: 30000,
+  maxTokens: 1000,
+  temperature: 0.7,
+} as const;
 
-export interface StatusResponse {
-  imageUrl: string;
-  generatedContent: GeneratedContent;
-  metadata: {
-    prompt: string;
-    style: string;
-    timestamp: number;
-  };
-}
+// Predefined categories with enhanced prompts
+const CATEGORY_PROMPTS = {
+  motivacao: 'Crie um status motivacional inspirador que incentive ação e determinação',
+  amor: 'Crie um status romântico e emocional sobre amor e relacionamentos',
+  sucesso: 'Crie um status sobre conquistas, metas e sucesso pessoal',
+  foco: 'Crie um status sobre concentração, disciplina e produtividade',
+  gratidao: 'Crie um status sobre gratidão, apreciação e positividade',
+  paz: 'Crie um status sobre tranquilidade, harmonia e bem-estar',
+  forca: 'Crie um status sobre força interior, resiliência e superação',
+  esperanca: 'Crie um status sobre otimismo, fé e esperança no futuro',
+} as const;
+
+// Style configurations
+const STYLE_CONFIGS = {
+  modern: {
+    description: 'Design limpo e contemporâneo',
+    colors: ['#1a1a2e', '#16213e', '#0f3460'],
+    fonts: ['Inter', 'Roboto', 'Open Sans'],
+  },
+  elegant: {
+    description: 'Estilo sofisticado e refinado',
+    colors: ['#2c3e50', '#34495e', '#7f8c8d'],
+    fonts: ['Playfair Display', 'Merriweather', 'Lora'],
+  },
+  minimalist: {
+    description: 'Design simples e essencial',
+    colors: ['#ffffff', '#f8f9fa', '#e9ecef'],
+    fonts: ['Inter', 'Roboto', 'Helvetica'],
+  },
+  vibrant: {
+    description: 'Cores vivas e energéticas',
+    colors: ['#e74c3c', '#f39c12', '#3498db'],
+    fonts: ['Poppins', 'Montserrat', 'Raleway'],
+  },
+  dark: {
+    description: 'Tema escuro e misterioso',
+    colors: ['#000000', '#1a1a1a', '#2d2d2d'],
+    fonts: ['Inter', 'Roboto', 'Arial'],
+  },
+  gradient: {
+    description: 'Gradientes coloridos',
+    colors: ['linear-gradient(45deg, #ff6b6b, #4ecdc4)', 'linear-gradient(45deg, #a8edea, #fed6e3)'],
+    fonts: ['Inter', 'Roboto', 'Open Sans'],
+  },
+  neon: {
+    description: 'Efeito neon e brilhante',
+    colors: ['#00ff00', '#ff00ff', '#00ffff'],
+    fonts: ['Orbitron', 'Audiowide', 'Monoton'],
+  },
+} as const;
 
 class GeminiService {
   private textModel;
+  private isInitialized: boolean = false;
 
   constructor() {
-    // Usar o modelo mais recente disponível
-    this.textModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    this.initialize();
   }
 
-  /**
-   * Gera conteúdo usando a API do Gemini com base no tema fornecido pelo usuário
-   */
-  private async generateContentWithGemini(theme: string, includeHashtags: boolean = true, includeComplementaryPhrase: boolean = true): Promise<GeneratedContent> {
+  private initialize(): void {
+    if (!API_KEY) {
+      console.error('Gemini API key is missing');
+      return;
+    }
+
     try {
-      // Construir requisitos dinamicamente com base nas opções
-      let requirements = [
-        '1. O status deve ser inspirador e visualmente atrativo',
-        '2. Use emojis apropriados para enriquecer o conteúdo',
-        '3. Formate o texto com quebras de linha adequadas para melhor legibilidade',
-        '4. Mantenha o texto conciso e impactante',
-        '5. Inclua uma mensagem positiva ou motivacional',
-        '6. NÃO inclua um título separado - o status deve ser uma mensagem coesa'
-      ];
-
-      if (!includeHashtags) {
-        requirements.push('7. NÃO use hashtags');
-      }
-
-      if (!includeComplementaryPhrase) {
-        requirements.push('8. NÃO inclua frases complementares ou comentários além do status principal');
-      }
-
-      // Preparar o prompt para a IA
-      let prompt = 'Você é um criador de status profissionais para redes sociais. ';
-      prompt += 'Crie um status com base no seguinte tema: "' + theme + '"\n\n';
-      prompt += 'Requisitos:\n';
-      prompt += requirements.join('\n') + '\n\n';
-      prompt += 'Exemplo de formato:\n';
-      prompt += '"Acredite no seu potencial e siga em frente. \n';
-      prompt += 'Cada passo é uma vitória.\n\n';
-      prompt += '🚀"\n\n';
-      prompt += 'Além disso, inclua no final do texto:\n';
-      prompt += '- Uma linha com "background: #HEX" (substitua HEX pela cor de fundo apropriada)\n';
-      prompt += '- Uma linha com "text: #HEX" (substitua HEX pela cor de texto que contraste bem)\n\n';
-      prompt += 'Exemplo completo:\n';
-      prompt += '"Acredite no seu potencial e siga em frente. \n';
-      prompt += 'Cada passo é uma vitória.\n\n';
-      prompt += '🚀\n\n';
-      prompt += 'background: #1a535c\n';
-      prompt += 'text: #f7fff7"\n\n';
-      prompt += 'Retorne APENAS o conteúdo do status com as linhas de cores, nada além.';
-
-      // Chamar a API do Gemini
-      const result = await this.textModel.generateContent(prompt);
-      const response = await result.response;
-      const rawText = response.text();
-
-      // Extrair texto e cores da resposta da IA
-      let { text, backgroundColor, textColor } = this.extractColorsFromText(rawText);
-
-      // Se não conseguirmos extrair as cores, usar cores padrão
-      if (!backgroundColor || !textColor) {
-        backgroundColor = backgroundColor || '#1e3a8a';
-        textColor = textColor || '#dbeafe';
-      }
-
-      return {
-        text: text.trim(),
-        backgroundColor,
-        textColor,
-        fontSize: 18,
-        fontFamily: 'Inter'
-      };
+      this.textModel = genAI.getGenerativeModel({ 
+        model: 'gemini-2.0-flash',
+        generationConfig: {
+          maxOutputTokens: DEFAULT_CONFIG.maxTokens,
+          temperature: DEFAULT_CONFIG.temperature,
+        },
+      });
+      this.isInitialized = true;
     } catch (error) {
-      console.error('Erro ao gerar conteúdo com Gemini:', error);
-      
-      // Fallback para conteúdo padrão se a API falhar
-      return {
-        text: '"' + theme.charAt(0).toUpperCase() + theme.slice(1) + ' é a força que transforma sonhos em realidade.\n\nAcredite em si mesmo! 🌟"',
-        backgroundColor: '#1e3a8a',
-        textColor: '#dbeafe',
-        fontSize: 18,
-        fontFamily: 'Inter'
-      };
+      console.error('Failed to initialize Gemini service:', error);
     }
   }
 
   /**
-   * Função auxiliar para extrair cores da resposta da IA
+   * Validates the service initialization
    */
-  private extractColorsFromText(text: string): { text: string; backgroundColor?: string; textColor?: string } {
-    // Procurar padrões de cor hexadecimal no texto
-    const bgMatch = text.match(/(?:background|fundo):\s*(#[0-9a-fA-F]{6})/i);
-    const textMatch = text.match(/(?:text|texto):\s*(#[0-9a-fA-F]{6})/i);
+  private validateInitialization(): void {
+    if (!this.isInitialized) {
+      throw new Error('Gemini service not initialized');
+    }
+  }
 
-    // Remover linhas com menções a cores do texto final
-    const cleanText = text
-      .replace(/(?:background|fundo|text|texto):\s*#[0-9a-fA-F]{6}/gi, '')
-      .trim();
-
+  /**
+   * Creates a user-friendly error
+   */
+  private createError(code: keyof typeof ERROR_CODES, message: string, details?: string): AppError {
     return {
-      text: cleanText,
-      backgroundColor: bgMatch ? bgMatch[1] : undefined,
-      textColor: textMatch ? textMatch[1] : undefined
+      code: ERROR_CODES[code],
+      message,
+      details,
+      timestamp: Date.now(),
+      userFriendly: true,
     };
   }
 
   /**
-   * Gera conteúdo automático baseado no tema
+   * Handles API errors and converts them to user-friendly messages
    */
-  private async generateContentFromTheme(theme: string, includeHashtags?: boolean, includeComplementaryPhrase?: boolean): Promise<GeneratedContent> {
-    // Usar a API do Gemini diretamente em vez dos templates predefinidos
-    return await this.generateContentWithGemini(theme, includeHashtags, includeComplementaryPhrase);
+  private handleApiError(error: any): AppError {
+    console.error('Gemini API Error:', error);
+
+    if (error.message?.includes('API key')) {
+      return this.createError('API_KEY_MISSING', 'Chave da API inválida ou ausente');
+    }
+
+    if (error.message?.includes('rate limit')) {
+      return this.createError('RATE_LIMIT', 'Limite de requisições excedido. Tente novamente em alguns minutos');
+    }
+
+    if (error.message?.includes('content filter')) {
+      return this.createError('CONTENT_FILTER', 'Conteúdo não permitido. Tente um tema diferente');
+    }
+
+    if (error.message?.includes('timeout')) {
+      return this.createError('TIMEOUT', 'Tempo limite excedido. Verifique sua conexão');
+    }
+
+    if (error.message?.includes('network')) {
+      return this.createError('NETWORK_ERROR', 'Erro de conexão. Verifique sua internet');
+    }
+
+    return this.createError('API_ERROR', 'Erro interno do serviço. Tente novamente');
   }
 
   /**
-   * Gera uma imagem de status usando IA baseado apenas no tema
+   * Validates the status request
+   */
+  private validateRequest(request: StatusRequest): void {
+    if (!request.theme || request.theme.trim().length === 0) {
+      throw new Error('Tema é obrigatório');
+    }
+
+    if (request.theme.length > 100) {
+      throw new Error('Tema muito longo. Máximo 100 caracteres');
+    }
+
+    if (request.style && !Object.keys(STYLE_CONFIGS).includes(request.style)) {
+      throw new Error('Estilo inválido');
+    }
+
+    if (request.aspectRatio && !['9:16', '1:1', '16:9'].includes(request.aspectRatio)) {
+      throw new Error('Proporção inválida');
+    }
+  }
+
+  /**
+   * Builds the prompt for content generation
+   */
+  private buildPrompt(request: StatusRequest): string {
+    const { theme, style = 'modern', includeHashtags = true, includeComplementaryPhrase = true } = request;
+    
+    const styleConfig = STYLE_CONFIGS[style];
+    const categoryPrompt = CATEGORY_PROMPTS[theme.toLowerCase() as keyof typeof CATEGORY_PROMPTS] || 
+                          `Crie um status inspirador sobre "${theme}"`;
+
+    let prompt = `Você é um criador de status profissionais para redes sociais especializado em ${styleConfig.description}. `;
+    prompt += `${categoryPrompt}\n\n`;
+    
+    prompt += 'Requisitos:\n';
+    prompt += '1. O status deve ser inspirador e visualmente atrativo\n';
+    prompt += '2. Use emojis apropriados para enriquecer o conteúdo\n';
+    prompt += '3. Formate o texto com quebras de linha adequadas para melhor legibilidade\n';
+    prompt += '4. Mantenha o texto conciso e impactante (máximo 3-4 linhas)\n';
+    prompt += '5. Inclua uma mensagem positiva ou motivacional\n';
+    prompt += '6. Use linguagem natural e acessível\n';
+    prompt += '7. Evite clichês excessivos\n';
+
+    if (includeHashtags) {
+      prompt += '8. Inclua 2-3 hashtags relevantes no final\n';
+    }
+
+    if (includeComplementaryPhrase) {
+      prompt += '9. Adicione uma frase complementar inspiradora\n';
+    }
+
+    prompt += '\nExemplo de formato:\n';
+    prompt += '"Acredite no seu potencial e siga em frente.\n';
+    prompt += 'Cada passo é uma vitória.\n\n';
+    prompt += '🚀 #Motivação #Sucesso"\n\n';
+
+    prompt += 'Além disso, inclua no final:\n';
+    prompt += '- Uma linha com "background: #HEX" (cor de fundo)\n';
+    prompt += '- Uma linha com "text: #HEX" (cor do texto)\n';
+    prompt += '- Uma linha com "font: NOME_DA_FONTE" (fonte)\n\n';
+
+    prompt += 'Retorne APENAS o conteúdo do status com as configurações, nada além.';
+
+    return prompt;
+  }
+
+  /**
+   * Extracts colors and font from the AI response
+   */
+  private extractContentFromResponse(rawText: string): GeneratedContent {
+    const lines = rawText.split('\n').filter(line => line.trim());
+    
+    let text = '';
+    let backgroundColor = '#1a1a2e';
+    let textColor = '#ffffff';
+    let fontFamily = 'Inter';
+
+    for (const line of lines) {
+      if (line.startsWith('background:')) {
+        backgroundColor = line.replace('background:', '').trim();
+      } else if (line.startsWith('text:')) {
+        textColor = line.replace('text:', '').trim();
+      } else if (line.startsWith('font:')) {
+        fontFamily = line.replace('font:', '').trim();
+      } else {
+        text += line + '\n';
+      }
+    }
+
+    // Clean up text
+    text = text.trim();
+
+    // Validate colors
+    if (!backgroundColor.startsWith('#')) {
+      backgroundColor = '#1a1a2e';
+    }
+    if (!textColor.startsWith('#')) {
+      textColor = '#ffffff';
+    }
+
+    return {
+      text,
+      backgroundColor,
+      textColor,
+      fontSize: 20,
+      fontFamily,
+    };
+  }
+
+  /**
+   * Generates content using Gemini with retry logic
+   */
+  private async generateContentWithGemini(request: StatusRequest): Promise<GeneratedContent> {
+    const prompt = this.buildPrompt(request);
+    
+    const generateWithRetry = async () => {
+      const startTime = Date.now();
+      
+      const result = await this.textModel.generateContent(prompt);
+      const response = await result.response;
+      const rawText = response.text();
+
+      const processingTime = Date.now() - startTime;
+      
+      if (!rawText || rawText.trim().length === 0) {
+        throw new Error('Resposta vazia da API');
+      }
+
+      const content = this.extractContentFromResponse(rawText);
+      
+      // Validate extracted content
+      if (!content.text || content.text.trim().length === 0) {
+        throw new Error('Falha ao extrair conteúdo da resposta');
+      }
+
+      return content;
+    };
+
+    return retry(generateWithRetry, DEFAULT_CONFIG.maxRetries, 1000);
+  }
+
+  /**
+   * Generates a status with enhanced error handling and fallbacks
    */
   async generateStatus(request: StatusRequest): Promise<StatusResponse> {
     try {
-      console.log('Gerando status com request:', request);
+      this.validateInitialization();
+      this.validateRequest(request);
+
+      const startTime = Date.now();
       
-      // Validação básica
-      if (!request.theme.trim()) {
-        throw new Error('Tema é obrigatório para gerar o status');
-      }
+      const generatedContent = await this.generateContentWithGemini(request);
+      
+      const processingTime = Date.now() - startTime;
 
-      // Gerar conteúdo automático baseado no tema
-      const generatedContent = await this.generateContentFromTheme(
-        request.theme,
-        request.includeHashtags,
-        request.includeComplementaryPhrase
-      );
-      console.log('Conteúdo gerado:', generatedContent);
-
-      // Criar request completo com conteúdo gerado
-      const fullRequest = {
-        ...request,
-        text: generatedContent.text,
-        backgroundColor: generatedContent.backgroundColor,
-        textColor: generatedContent.textColor,
-        fontSize: generatedContent.fontSize,
-        fontFamily: generatedContent.fontFamily
-      };
-
-      const prompt = `Tema: ${request.theme} - ${generatedContent.text}`;
-      console.log('Prompt completo:', prompt);
-
-      // Gerar imagem com Gemini ou placeholder
-      const imageUrl = await this.generateImageWithGemini(fullRequest, prompt);
-      console.log('URL da imagem:', imageUrl);
+      // Create a mock image URL (in a real app, this would be generated)
+      const imageUrl = `data:image/svg+xml;base64,${btoa(`
+        <svg width="360" height="640" xmlns="http://www.w3.org/2000/svg">
+          <rect width="100%" height="100%" fill="${generatedContent.backgroundColor}"/>
+          <text x="50%" y="50%" text-anchor="middle" fill="${generatedContent.textColor}" 
+                font-family="${generatedContent.fontFamily}" font-size="${generatedContent.fontSize}">
+            ${generatedContent.text.replace(/\n/g, '\n            ')}
+          </text>
+        </svg>
+      `)}`;
 
       return {
         imageUrl,
         generatedContent,
         metadata: {
-          prompt,
+          prompt: this.buildPrompt(request),
           style: request.style || 'modern',
           timestamp: Date.now(),
+          processingTime,
         },
       };
+
     } catch (error) {
-      console.error('Erro ao gerar status:', error);
-      throw new Error(`Falha na geração: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
-    }
-  }
-
-  /**
-   * Gera uma imagem usando a API do Gemini ou placeholder como fallback
-   */
-  private async generateImageWithGemini(request: any, prompt: string): Promise<string> {
-    try {
-      console.log('Gerando imagem com request:', request);
-      console.log('Prompt:', prompt);
+      console.error('Error generating status:', error);
       
-      // Tentar usar a API do Gemini para geração de imagens
-      // Por enquanto, ainda usando placeholder como fallback
-      // Mas estruturado para fácil integração futura
-      
-      // Simular delay da API
-      await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 2000));
-
-      // Encode do texto para URL
-      const encodedText = encodeURIComponent(request.text);
-      const bgColor = (request.backgroundColor || '#1E1E1E').replace('#', '');
-      const textColor = (request.textColor || '#FFFFFF').replace('#', '');
-
-      // Usar um serviço de placeholder mais avançado
-      const width = 360;
-      const height = 640;
-      
-      const imageUrl = `https://placehold.co/${width}x${height}/${bgColor}/${textColor}?text=${encodedText}`;
-      console.log('URL da imagem gerada:', imageUrl);
-      
-      return imageUrl;
-    } catch (error) {
-      console.error('Erro ao gerar imagem com Gemini:', error);
-      // Fallback para placeholder básico
-      const width = 360;
-      const height = 640;
-      const bgColor = (request.backgroundColor || '#1E1E1E').replace('#', '');
-      const textColor = (request.textColor || '#FFFFFF').replace('#', '');
-      const encodedText = encodeURIComponent("Status gerado");
-      
-      return `https://placehold.co/${width}x${height}/${bgColor}/${textColor}?text=${encodedText}`;
-    }
-  }
-
-  /**
-   * Obtém parâmetros de estilo para o placeholder
-   */
-  private getStyleParams(style: string) {
-    const styles = {
-      modern: { font: 'Inter' },
-      elegant: { font: 'Playfair' },
-      minimalist: { font: 'Helvetica' },
-      vibrant: { font: 'Roboto' },
-      dark: { font: 'Inter' },
-    };
-
-    return styles[style as keyof typeof styles] || styles.modern;
-  }
-
-  /**
-   * Gera variações de um status
-   */
-  async generateVariations(baseRequest: StatusRequest, count: number = 3): Promise<StatusResponse[]> {
-    const variations = [];
-    const styles: Array<StatusRequest['style']> = ['modern', 'elegant', 'minimalist', 'vibrant'];
-
-    for (let i = 0; i < count; i++) {
-      const variationRequest = {
-        ...baseRequest,
-        style: styles[i % styles.length],
+      // Return fallback content
+      const fallbackContent: GeneratedContent = {
+        text: `✨ ${request.theme.toUpperCase()} ✨\n\n"${request.theme.charAt(0).toUpperCase() + request.theme.slice(1)} é a força que transforma sonhos em realidade."\n\nVIVA COM PROPÓSITO! 🚀`,
+        backgroundColor: '#1a1a2e',
+        textColor: '#f39c12',
+        fontSize: 20,
+        fontFamily: 'Inter',
       };
 
-      const variation = await this.generateStatus(variationRequest);
-      variations.push(variation);
+      return {
+        imageUrl: '',
+        generatedContent: fallbackContent,
+        metadata: {
+          prompt: '',
+          style: request.style || 'modern',
+          timestamp: Date.now(),
+          processingTime: 0,
+        },
+      };
     }
-
-    return variations;
   }
 
   /**
-   * Valida configurações antes de gerar
+   * Gets available styles
    */
-  validateRequest(request: StatusRequest): { valid: boolean; errors: string[] } {
-    const errors: string[] = [];
+  getAvailableStyles() {
+    return Object.entries(STYLE_CONFIGS).map(([id, config]) => ({
+      id,
+      name: config.description,
+      description: config.description,
+      preview: config.colors[0],
+    }));
+  }
 
-    if (!request.theme || request.theme.trim().length === 0) {
-      errors.push('Tema é obrigatório');
-    }
+  /**
+   * Gets available categories
+   */
+  getAvailableCategories() {
+    return Object.entries(CATEGORY_PROMPTS).map(([id, prompt]) => ({
+      id,
+      name: id.charAt(0).toUpperCase() + id.slice(1),
+      emoji: this.getCategoryEmoji(id),
+      description: prompt,
+    }));
+  }
 
-    if (request.theme && request.theme.length > 50) {
-      errors.push('Tema muito longo (máximo 50 caracteres)');
-    }
-
-    return {
-      valid: errors.length === 0,
-      errors,
+  /**
+   * Gets emoji for category
+   */
+  private getCategoryEmoji(category: string): string {
+    const emojis: Record<string, string> = {
+      motivacao: '💪',
+      amor: '❤️',
+      sucesso: '🏆',
+      foco: '🎯',
+      gratidao: '🙏',
+      paz: '🕊️',
+      forca: '⚡',
+      esperanca: '🌟',
     };
+    return emojis[category] || '✨';
   }
 
   /**
-   * Obtém histórico de geracões (para implementação futura)
+   * Health check for the service
    */
-  async getHistory(): Promise<StatusResponse[]> {
-    // Implementar com localStorage ou backend
-    const history = localStorage.getItem('statusai_history');
-    return history ? JSON.parse(history) : [];
-  }
-
-  /**
-   * Salva no histórico (para implementação futura)
-   */
-  async saveToHistory(status: StatusResponse): Promise<void> {
-    const history = await this.getHistory();
-    history.unshift(status);
-    
-    // Manter apenas os últimos 50 itens
-    const trimmedHistory = history.slice(0, 50);
-    localStorage.setItem('statusai_history', JSON.stringify(trimmedHistory));
+  async healthCheck(): Promise<boolean> {
+    try {
+      this.validateInitialization();
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 }
 
-// Instância singleton
-export const geminiService = new GeminiService();
+// Singleton instance
+let geminiServiceInstance: GeminiService | null = null;
 
-// Hook para usar o serviço em React
-export const useGeminiService = () => {
-  return geminiService;
-};
+export function useGeminiService(): GeminiService {
+  if (!geminiServiceInstance) {
+    geminiServiceInstance = new GeminiService();
+  }
+  return geminiServiceInstance;
+}
+
+export default GeminiService;

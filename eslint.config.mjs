@@ -1,25 +1,82 @@
-import { dirname } from "path";
-import { fileURLToPath } from "url";
-import { FlatCompat } from "@eslint/eslintrc";
+import js from '@eslint/js';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-const compat = new FlatCompat({
-  baseDirectory: __dirname,
-});
-
-const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+export default [
+  js.configs.recommended,
   {
-    ignores: [
-      "node_modules/**",
-      ".next/**",
-      "out/**",
-      "build/**",
-      "next-env.d.ts",
-    ],
+    files: ['**/*.{ts,tsx,js,jsx}'],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'module',
+      globals: {
+        window: 'readonly',
+        document: 'readonly',
+        console: 'readonly',
+        process: 'readonly',
+        global: 'readonly',
+        Buffer: 'readonly',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        module: 'readonly',
+        require: 'readonly',
+        exports: 'readonly',
+        jest: 'readonly',
+        describe: 'readonly',
+        it: 'readonly',
+        test: 'readonly',
+        expect: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        URLSearchParams: 'readonly',
+        HTMLCanvasElement: 'readonly',
+        ResizeObserver: 'readonly',
+        IntersectionObserver: 'readonly',
+        fetch: 'readonly',
+      },
+      parserOptions: {
+        ecmaFeatures: {
+          jsx: true,
+        },
+      },
+    },
+    rules: {
+      // General rules
+      'no-console': ['warn', { allow: ['warn', 'error'] }],
+      'no-debugger': 'error',
+      'no-alert': 'error',
+      'no-var': 'error',
+      'prefer-const': 'error',
+      'no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+      'no-undef': 'error',
+      'no-unreachable': 'error',
+      'no-empty': 'error',
+      'no-extra-semi': 'error',
+      'no-irregular-whitespace': 'error',
+      'no-multiple-empty-lines': ['error', { max: 2 }],
+      'no-trailing-spaces': 'error',
+      'eol-last': 'error',
+      'comma-dangle': ['error', 'always-multiline'],
+      'semi': ['error', 'always'],
+      'quotes': ['error', 'single', { avoidEscape: true }],
+      'indent': ['error', 2, { SwitchCase: 1 }],
+      'object-curly-spacing': ['error', 'always'],
+      'array-bracket-spacing': ['error', 'never'],
+      'comma-spacing': ['error', { before: false, after: true }],
+      'key-spacing': ['error', { beforeColon: false, afterColon: true }],
+      'keyword-spacing': ['error', { before: true, after: true }],
+      'space-before-blocks': 'error',
+      'space-before-function-paren': ['error', 'never'],
+      'space-in-parens': ['error', 'never'],
+      'space-infix-ops': 'error',
+      'spaced-comment': ['error', 'always'],
+    },
+  },
+  {
+    files: ['**/*.test.{ts,tsx,js,jsx}', '**/*.spec.{ts,tsx,js,jsx}', 'jest.setup.js', 'jest.config.js'],
+    rules: {
+      'no-console': 'off',
+      'no-undef': 'off',
+    },
   },
 ];
-
-export default eslintConfig;
