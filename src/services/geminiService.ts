@@ -48,7 +48,7 @@ class GeminiService {
   private async generateContentWithGemini(theme: string, includeHashtags: boolean = true, includeComplementaryPhrase: boolean = true): Promise<GeneratedContent> {
     try {
       // Construir requisitos dinamicamente com base nas opções
-      let requirements = [
+      const requirements = [
         '1. O status deve ser inspirador e visualmente atrativo',
         '2. Use emojis apropriados para enriquecer o conteúdo',
         '3. Formate o texto com quebras de linha adequadas para melhor legibilidade',
@@ -91,7 +91,9 @@ class GeminiService {
       const rawText = response.text();
 
       // Extrair texto e cores da resposta da IA
-      let { text, backgroundColor, textColor } = this.extractColorsFromText(rawText);
+      const extracted = this.extractColorsFromText(rawText);
+      const { text } = extracted;
+      let { backgroundColor, textColor } = extracted;
 
       // Se não conseguirmos extrair as cores, usar cores padrão
       if (!backgroundColor || !textColor) {
@@ -203,7 +205,7 @@ class GeminiService {
   /**
    * Gera uma imagem usando a API do Gemini ou placeholder como fallback
    */
-  private async generateImageWithGemini(request: any, prompt: string): Promise<string> {
+  private async generateImageWithGemini(request: StatusRequest & { text: string }, prompt: string): Promise<string> {
     try {
       console.log('Gerando imagem com request:', request);
       console.log('Prompt:', prompt);
@@ -260,14 +262,14 @@ class GeminiService {
    * Gera variações de um status
    */
   async generateVariations(baseRequest: StatusRequest, count: number = 3): Promise<StatusResponse[]> {
-    const variations = [];
+    const variations: StatusResponse[] = [];
     const styles: Array<StatusRequest['style']> = ['modern', 'elegant', 'minimalist', 'vibrant'];
 
     for (let i = 0; i < count; i++) {
       const variationRequest = {
         ...baseRequest,
         style: styles[i % styles.length],
-      };
+      } as StatusRequest;
 
       const variation = await this.generateStatus(variationRequest);
       variations.push(variation);

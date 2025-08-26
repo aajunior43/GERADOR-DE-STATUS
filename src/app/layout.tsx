@@ -27,6 +27,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: "StatusAI Team" }],
   creator: "StatusAI Creator",
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"),
   openGraph: {
     type: "website",
     locale: "pt_BR",

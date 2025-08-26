@@ -1,13 +1,14 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import type { GeneratedContent } from '@/services/geminiService';
 
 const SimpleCreator = () => {
   const [theme, setTheme] = useState('');
   const [includeHashtags, setIncludeHashtags] = useState(true);
   const [includeComplementaryPhrase, setIncludeComplementaryPhrase] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [generatedContent, setGeneratedContent] = useState<any>(null);
+  const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   const generateStatus = async () => {
@@ -16,8 +17,7 @@ const SimpleCreator = () => {
     setIsGenerating(true);
     
     try {
-      const { useGeminiService } = await import('@/services/geminiService');
-      const geminiService = useGeminiService();
+      const { geminiService } = await import('@/services/geminiService');
       
       const response = await geminiService.generateStatus({
         theme,
@@ -50,6 +50,37 @@ VIVA COM PROPÓSITO! 🚀`,
       setIsGenerating(false);
     }
   };
+
+  const adjustBrightness = useCallback((hex: string, percent: number): string => {
+    const num = parseInt(hex.replace('#', ''), 16);
+    const amt = Math.round(2.55 * percent);
+    const R = (num >> 16) + amt;
+    const G = (num >> 8 & 0x00FF) + amt;
+    const B = (num & 0x0000FF) + amt;
+    
+    return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
+      (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
+      (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+  }, []);
+
+  const drawDecorations = useCallback((ctx: CanvasRenderingContext2D, baseColor: string) => {
+    ctx.save();
+    
+    const decorColor = adjustBrightness(baseColor, 15);
+    ctx.fillStyle = decorColor;
+    ctx.globalAlpha = 0.1;
+    
+    // Círculos decorativos
+    ctx.beginPath();
+    ctx.arc(300, 100, 80, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.arc(60, 540, 60, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.restore();
+  }, [adjustBrightness]);
 
   // Renderizar status no canvas
   useEffect(() => {
@@ -151,40 +182,7 @@ VIVA COM PROPÓSITO! 🚀`,
     ctx.shadowOffsetX = 0;
     ctx.shadowOffsetY = 0;
 
-  }, [generatedContent]);
-
-  // Função para ajustar brilho
-  const adjustBrightness = (hex: string, percent: number): string => {
-    const num = parseInt(hex.replace('#', ''), 16);
-    const amt = Math.round(2.55 * percent);
-    const R = (num >> 16) + amt;
-    const G = (num >> 8 & 0x00FF) + amt;
-    const B = (num & 0x0000FF) + amt;
-    
-    return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
-      (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
-      (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
-  };
-
-  // Função para desenhar decorações
-  const drawDecorations = (ctx: CanvasRenderingContext2D, baseColor: string) => {
-    ctx.save();
-    
-    const decorColor = adjustBrightness(baseColor, 15);
-    ctx.fillStyle = decorColor;
-    ctx.globalAlpha = 0.1;
-    
-    // Círculos decorativos
-    ctx.beginPath();
-    ctx.arc(300, 100, 80, 0, Math.PI * 2);
-    ctx.fill();
-    
-    ctx.beginPath();
-    ctx.arc(60, 540, 60, 0, Math.PI * 2);
-    ctx.fill();
-    
-    ctx.restore();
-  };
+  }, [generatedContent, drawDecorations, adjustBrightness]);
 
   // Função para download
   const downloadImage = () => {
