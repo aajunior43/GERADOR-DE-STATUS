@@ -4,6 +4,8 @@ import React, { useState, useRef, useEffect } from 'react';
 
 const SimpleCreator = () => {
   const [theme, setTheme] = useState('');
+  const [includeHashtags, setIncludeHashtags] = useState(true);
+  const [includeComplementaryPhrase, setIncludeComplementaryPhrase] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -21,6 +23,8 @@ const SimpleCreator = () => {
         theme,
         style: 'modern',
         aspectRatio: '9:16',
+        includeHashtags,
+        includeComplementaryPhrase
       });
       
       setGeneratedContent(response.generatedContent);
@@ -29,7 +33,13 @@ const SimpleCreator = () => {
       console.error('Erro ao gerar status:', error);
       // Fallback com conteúdo básico
       const fallbackContent = {
-        text: `✨ ${theme.toUpperCase()} ✨\n\n"${theme.charAt(0).toUpperCase() + theme.slice(1)} é a força\nque transforma sonhos\nem realidade."\n\nVIVA COM PROPÓSITO! 🚀`,
+        text: `✨ ${theme.toUpperCase()} ✨
+
+"${theme.charAt(0).toUpperCase() + theme.slice(1)} é a força
+que transforma sonhos
+em realidade."
+
+VIVA COM PROPÓSITO! 🚀`,
         backgroundColor: '#1a1a2e',
         textColor: '#f39c12',
         fontSize: 20,
@@ -232,6 +242,34 @@ const SimpleCreator = () => {
                     ✕
                   </button>
                 )}
+              </div>
+
+              {/* Opções */}
+              <div className="flex flex-col sm:flex-row gap-4">
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="hashtags"
+                    checked={includeHashtags}
+                    onChange={(e) => setIncludeHashtags(e.target.checked)}
+                    className="w-4 h-4 text-yellow-500 bg-gray-700 border-gray-600 rounded focus:ring-yellow-500"
+                  />
+                  <label htmlFor="hashtags" className="ml-2 text-gray-300">
+                    Incluir hashtags
+                  </label>
+                </div>
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="complementary"
+                    checked={includeComplementaryPhrase}
+                    onChange={(e) => setIncludeComplementaryPhrase(e.target.checked)}
+                    className="w-4 h-4 text-yellow-500 bg-gray-700 border-gray-600 rounded focus:ring-yellow-500"
+                  />
+                  <label htmlFor="complementary" className="ml-2 text-gray-300">
+                    Frase complementar
+                  </label>
+                </div>
               </div>
 
               {/* Botão gerar */}

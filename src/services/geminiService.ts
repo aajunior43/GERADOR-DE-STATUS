@@ -12,6 +12,8 @@ export interface StatusRequest {
   textColor?: string;
   fontSize?: number;
   fontFamily?: string;
+  includeHashtags?: boolean;
+  includeComplementaryPhrase?: boolean;
 }
 
 export interface GeneratedContent {
@@ -40,43 +42,48 @@ class GeminiService {
     this.textModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
   }
 
-  /**\n   * Gera conteúdo usando a API do Gemini com base no tema fornecido pelo usuário\n   */
-  private async generateContentWithGemini(theme: string): Promise<GeneratedContent> {
+  /**
+   * Gera conteúdo usando a API do Gemini com base no tema fornecido pelo usuário
+   */
+  private async generateContentWithGemini(theme: string, includeHashtags: boolean = true, includeComplementaryPhrase: boolean = true): Promise<GeneratedContent> {
     try {
+      // Construir requisitos dinamicamente com base nas opções
+      let requirements = [
+        '1. O status deve ser inspirador e visualmente atrativo',
+        '2. Use emojis apropriados para enriquecer o conteúdo',
+        '3. Formate o texto com quebras de linha adequadas para melhor legibilidade',
+        '4. Mantenha o texto conciso e impactante',
+        '5. Inclua uma mensagem positiva ou motivacional',
+        '6. NÃO inclua um título separado - o status deve ser uma mensagem coesa'
+      ];
+
+      if (!includeHashtags) {
+        requirements.push('7. NÃO use hashtags');
+      }
+
+      if (!includeComplementaryPhrase) {
+        requirements.push('8. NÃO inclua frases complementares ou comentários além do status principal');
+      }
+
       // Preparar o prompt para a IA
-      const prompt = `Você é um criador de status profissionais para redes sociais. 
-      Crie um status com base no seguinte tema: "${theme}"
-      
-      Requisitos:
-      1. O status deve ser inspirador e visualmente atrativo
-      2. Use emojis apropriados para enriquecer o conteúdo
-      3. Formate o texto com quebras de linha adequadas para melhor legibilidade
-      4. Mantenha o texto conciso e impactante
-      5. Inclua uma mensagem positiva ou motivacional
-      6. NÃO inclua um título separado - o status deve ser uma mensagem coesa
-      7. NÃO use hashtags
-      8. NÃO inclua comentários ou explicações além do status em si
-      
-      Exemplo de formato:
-      "Acredite no seu potencial e siga em frente. 
-      Cada passo é uma vitória.
-
-      🚀"
-      
-      Além disso, inclua no final do texto:
-      - Uma linha com "background: #HEX" (substitua HEX pela cor de fundo apropriada)
-      - Uma linha com "text: #HEX" (substitua HEX pela cor de texto que contraste bem)
-      
-      Exemplo completo:
-      "Acredite no seu potencial e siga em frente. 
-      Cada passo é uma vitória.
-
-      🚀
-      
-      background: #1a535c
-      text: #f7fff7"
-      
-      Retorne APENAS o conteúdo do status com as linhas de cores, nada além.`;
+      let prompt = 'Você é um criador de status profissionais para redes sociais. ';
+      prompt += 'Crie um status com base no seguinte tema: "' + theme + '"\n\n';
+      prompt += 'Requisitos:\n';
+      prompt += requirements.join('\n') + '\n\n';
+      prompt += 'Exemplo de formato:\n';
+      prompt += '"Acredite no seu potencial e siga em frente. \n';
+      prompt += 'Cada passo é uma vitória.\n\n';
+      prompt += '🚀"\n\n';
+      prompt += 'Além disso, inclua no final do texto:\n';
+      prompt += '- Uma linha com "background: #HEX" (substitua HEX pela cor de fundo apropriada)\n';
+      prompt += '- Uma linha com "text: #HEX" (substitua HEX pela cor de texto que contraste bem)\n\n';
+      prompt += 'Exemplo completo:\n';
+      prompt += '"Acredite no seu potencial e siga em frente. \n';
+      prompt += 'Cada passo é uma vitória.\n\n';
+      prompt += '🚀\n\n';
+      prompt += 'background: #1a535c\n';
+      prompt += 'text: #f7fff7"\n\n';
+      prompt += 'Retorne APENAS o conteúdo do status com as linhas de cores, nada além.';
 
       // Chamar a API do Gemini
       const result = await this.textModel.generateContent(prompt);
@@ -104,9 +111,7 @@ class GeminiService {
       
       // Fallback para conteúdo padrão se a API falhar
       return {
-        text: `"${theme.charAt(0).toUpperCase() + theme.slice(1)} é a força que transforma sonhos em realidade.
-
-Acredite em si mesmo! 🌟"`,
+        text: '"' + theme.charAt(0).toUpperCase() + theme.slice(1) + ' é a força que transforma sonhos em realidade.\n\nAcredite em si mesmo! 🌟"',
         backgroundColor: '#1e3a8a',
         textColor: '#dbeafe',
         fontSize: 18,
@@ -138,12 +143,14 @@ Acredite em si mesmo! 🌟"`,
   /**
    * Gera conteúdo automático baseado no tema
    */
-  private async generateContentFromTheme(theme: string): Promise<GeneratedContent> {
+  private async generateContentFromTheme(theme: string, includeHashtags?: boolean, includeComplementaryPhrase?: boolean): Promise<GeneratedContent> {
     // Usar a API do Gemini diretamente em vez dos templates predefinidos
-    return await this.generateContentWithGemini(theme);
+    return await this.generateContentWithGemini(theme, includeHashtags, includeComplementaryPhrase);
   }
 
-  /**\n   * Gera uma imagem de status usando IA baseado apenas no tema\n   */
+  /**
+   * Gera uma imagem de status usando IA baseado apenas no tema
+   */
   async generateStatus(request: StatusRequest): Promise<StatusResponse> {
     try {
       console.log('Gerando status com request:', request);
@@ -154,7 +161,11 @@ Acredite em si mesmo! 🌟"`,
       }
 
       // Gerar conteúdo automático baseado no tema
-      const generatedContent = await this.generateContentFromTheme(request.theme);
+      const generatedContent = await this.generateContentFromTheme(
+        request.theme,
+        request.includeHashtags,
+        request.includeComplementaryPhrase
+      );
       console.log('Conteúdo gerado:', generatedContent);
 
       // Criar request completo com conteúdo gerado
@@ -189,7 +200,9 @@ Acredite em si mesmo! 🌟"`,
     }
   }
 
-  /**\n   * Gera uma imagem usando a API do Gemini ou placeholder como fallback\n   */
+  /**
+   * Gera uma imagem usando a API do Gemini ou placeholder como fallback
+   */
   private async generateImageWithGemini(request: any, prompt: string): Promise<string> {
     try {
       console.log('Gerando imagem com request:', request);
