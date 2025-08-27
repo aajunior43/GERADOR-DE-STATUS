@@ -75,11 +75,25 @@ class GeminiService {
       prompt += '- Use paletas harmoniosas e profissionais\n';
       prompt += '- Evite cores muito vibrantes que dificultem a leitura\n';
       prompt += '- O texto deve ter alto contraste com o fundo\n';
-      prompt += '- Prefira tons escuros para fundo e claros para texto, ou vice-versa\n\n';
-      prompt += 'EXEMPLOS DE STATUS EFICAZES:\n';
-      prompt += '"A persistência transforma sonhos em realidade. 🌟\n\nbackground: #1a535c\ntext: #f7fff7"\n\n';
-      prompt += '"Cada desafio é uma oportunidade disfarçada. 💪\n\nbackground: #4a235a\ntext: #f9e79f"\n\n';
-      prompt += '"A jornada começa com um único passo. 🚶\n\nbackground: #154360\ntext: #aed6f1"\n\n';
+      prompt += '- Prefira tons escuros para fundo e claros para texto, ou vice-versa\n';
+      prompt += '- Considere o significado psicológico das cores:\n';
+      prompt += '  * Azuis: confiança, tranquilidade, profissionalismo\n';
+      prompt += '  * Verdes: crescimento, harmonia, equilíbrio\n';
+      prompt += '  * Roxos: criatividade, sabedoria, espiritualidade\n';
+      prompt += '  * Vermelhos: energia, paixão, força\n';
+      prompt += '  * Amarelos: otimismo, criatividade, clareza\n';
+      prompt += '  * Laranjas: entusiasmo, sucesso, vitalidade\n';
+      prompt += '  * Rosas: amor, compaixão, gentileza\n';
+      prompt += '  * Neutras: elegância, sofisticação, versatilidade\n\n';
+      prompt += 'EXEMPLOS DE STATUS EFICAZES COM CORES APROPRIADAS:\n';
+      prompt += '"A persistência transforma sonhos em realidade. 🌟\n\nbackground: #1a535c\ntext: #f7fff7"\n';
+      prompt += '(Azul-esverdeado para crescimento e equilíbrio)\n\n';
+      prompt += '"Cada desafio é uma oportunidade disfarçada. 💪\n\nbackground: #4a235a\ntext: #f9e79f"\n';
+      prompt += '(Roxo para criatividade e sabedoria)\n\n';
+      prompt += '"A jornada começa com um único passo. 🚶\n\nbackground: #154360\ntext: #aed6f1"\n';
+      prompt += '(Azul-escuro para confiança e tranquilidade)\n\n';
+      prompt += '"O amor é a força mais poderosa. ❤️\n\nbackground: #8e1e3d\ntext: #ffebf0"\n';
+      prompt += '(Vermelho-escuro para paixão e amor)\n\n';
       prompt += 'CRITÉRIOS DE QUALIDADE:\n';
       prompt += '- Clareza e objetividade\n';
       prompt += '- Relevância com o tema\n';
@@ -118,10 +132,7 @@ class GeminiService {
       
       // Fallback para conteúdo padrão se a API falhar
       return {
-        text: '"' + theme.charAt(0).toUpperCase() + theme.slice(1) + ' é a força que transforma sonhos em realidade.\"
-
-background: ' + colorPalette.backgroundColor + '
-text: ' + colorPalette.textColor,
+        text: '"' + theme.charAt(0).toUpperCase() + theme.slice(1) + ' é a força que transforma sonhos em realidade."\n\nbackground: ' + colorPalette.backgroundColor + '\ntext: ' + colorPalette.textColor,
         backgroundColor: colorPalette.backgroundColor,
         textColor: colorPalette.textColor,
         fontSize: 18,
@@ -130,7 +141,58 @@ text: ' + colorPalette.textColor,
     }
   }
 
-  /**\n   * Função auxiliar para extrair cores da resposta da IA\n   */\n  private extractColorsFromText(text: string): { text: string; backgroundColor?: string; textColor?: string } {\n    // Procurar padrões de cor hexadecimal no texto\n    const bgMatch = text.match(/(?:background|fundo):\\s*(#[0-9a-fA-F]{6})/i);\n    const textMatch = text.match(/(?:text|texto):\\s*(#[0-9a-fA-F]{6})/i);\n\n    // Remover linhas com menções a cores do texto final\n    const cleanText = text\n      .replace(/(?:background|fundo|text|texto):\\s*#[0-9a-fA-F]{6}/gi, '')\n      .trim();\n\n    return {\n      text: cleanText,\n      backgroundColor: bgMatch ? bgMatch[1] : undefined,\n      textColor: textMatch ? textMatch[1] : undefined\n    };\n  }\n\n  /**\n   * Gera uma paleta de cores harmoniosa com base em um tema\n   */\n  private generateColorPalette(theme: string): { backgroundColor: string; textColor: string } {\n    // Paletas de cores pré-definidas para diferentes temas\n    const colorPalettes: Record<string, { backgroundColor: string; textColor: string }[]> = {\n      'motivacao': [\n        { backgroundColor: '#1a535c', textColor: '#f7fff7' },\n        { backgroundColor: '#4a235a', textColor: '#f9e79f' },\n        { backgroundColor: '#154360', textColor: '#aed6f1' }\n      ],\n      'amor': [\n        { backgroundColor: '#8e1e3d', textColor: '#ffebf0' },\n        { backgroundColor: '#6c3483', textColor: '#f3e5f5' },\n        { backgroundColor: '#cb4335', textColor: '#fdf2f2' }\n      ],\n      'sucesso': [\n        { backgroundColor: '#0b5345', textColor: '#e8f6f3' },\n        { backgroundColor: '#7d6642', textColor: '#fef9e7' },\n        { backgroundColor: '#1a5276', textColor: '#ebf5fb' }\n      ],\n      'foco': [\n        { backgroundColor: '#154360', textColor: '#aed6f1' },\n        { backgroundColor: '#4a235a', textColor: '#f9e79f' },\n        { backgroundColor: '#0b5345', textColor: '#e8f6f3' }\n      ],\n      'gratidao': [\n        { backgroundColor: '#7d6642', textColor: '#fef9e7' },\n        { backgroundColor: '#1a5276', textColor: '#ebf5fb' },\n        { backgroundColor: '#6c3483', textColor: '#f3e5f5' }\n      ],\n      'paz': [\n        { backgroundColor: '#0b5345', textColor: '#e8f6f3' },\n        { backgroundColor: '#154360', textColor: '#aed6f1' },\n        { backgroundColor: '#1a535c', textColor: '#f7fff7' }\n      ],\n      'forca': [\n        { backgroundColor: '#6c3483', textColor: '#f3e5f5' },\n        { backgroundColor: '#cb4335', textColor: '#fdf2f2' },\n        { backgroundColor: '#1a5276', textColor: '#ebf5fb' }\n      ],\n      'esperanca': [\n        { backgroundColor: '#1a535c', textColor: '#f7fff7' },\n        { backgroundColor: '#7d6642', textColor: '#fef9e7' },\n        { backgroundColor: '#0b5345', textColor: '#e8f6f3' }\n      ]\n    };\n\n    // Encontrar o tema mais próximo nas paletas\n    const themeKey = Object.keys(colorPalettes).find(key => \n      theme.toLowerCase().includes(key)\n    ) || 'motivacao';\n\n    // Selecionar uma paleta aleatória do tema\n    const palettes = colorPalettes[themeKey] || colorPalettes['motivacao'];\n    const randomIndex = Math.floor(Math.random() * palettes.length);\n    \n    return palettes[randomIndex];\n  }
+  /**
+   * Calcula o contraste entre duas cores usando a fórmula de luminância relativa
+   */
+  private getContrastRatio(bgColor: string, textColor: string): number {
+    const getLuminance = (hex: string): number => {
+      const r = parseInt(hex.substr(1, 2), 16) / 255;
+      const g = parseInt(hex.substr(3, 2), 16) / 255;
+      const b = parseInt(hex.substr(5, 2), 16) / 255;
+      
+      const a = [r, g, b].map(v => {
+        return (v <= 0.03928) ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+      });
+      
+      return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
+    };
+    
+    const bgLuminance = getLuminance(bgColor);
+    const textLuminance = getLuminance(textColor);
+    
+    const lighter = Math.max(bgLuminance, textLuminance);
+    const darker = Math.min(bgLuminance, textLuminance);
+    
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+
+  /**
+   * Gera uma paleta de cores harmoniosa com base em um tema
+   */
+  private generateColorPalette(theme: string): { backgroundColor: string; textColor: string } {
+    const getRandomColor = () => {
+      const letters = '0123456789ABCDEF';
+      let color = '#';
+      for (let i = 0; i < 6; i++) {
+        color += letters[Math.floor(Math.random() * 16)];
+      }
+      return color;
+    };
+
+    let backgroundColor = getRandomColor();
+    let textColor = this.getContrastingTextColor(backgroundColor);
+
+    return { backgroundColor, textColor };
+  }
+
+  private getContrastingTextColor(backgroundColor: string): string {
+    const colorValue = parseInt(backgroundColor.replace('#', ''), 16);
+    const r = (colorValue >> 16) & 255;
+    const g = (colorValue >> 8) & 255;
+    const b = colorValue & 255;
+    const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+    return (yiq >= 128) ? '#000000' : '#FFFFFF';
+  }
 
   /**
    * Gera conteúdo automático baseado no tema
@@ -312,6 +374,35 @@ text: ' + colorPalette.textColor,
       console.error('Erro ao salvar no histórico:', error);
       // Não lançar erro pois isso não deve impedir a geração do status
     }
+  }
+
+  private extractColorsFromText(text: string): { text: string; backgroundColor: string; textColor: string } {
+    const lines = text.split('\n');
+    let extractedText = '';
+    let backgroundColor = '';
+    let textColor = '';
+
+    const backgroundRegex = /background:\s*(#[0-9a-fA-F]{6})/;
+    const textRegex = /text:\s*(#[0-9a-fA-F]{6})/;
+
+    lines.forEach(line => {
+      const bgMatch = line.match(backgroundRegex);
+      const textMatch = line.match(textRegex);
+
+      if (bgMatch) {
+        backgroundColor = bgMatch[1];
+      } else if (textMatch) {
+        textColor = textMatch[1];
+      } else if (line.trim() !== '') {
+        extractedText += line + '\n';
+      }
+    });
+
+    return {
+      text: extractedText.trim(),
+      backgroundColor,
+      textColor,
+    };
   }
 }
 
