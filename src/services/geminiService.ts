@@ -49,41 +49,37 @@ class GeminiService {
     try {
       // Construir requisitos dinamicamente com base nas opções
       let requirements = [
-        '1. O status deve ser inspirador e visualmente atrativo',
-        '2. Use emojis apropriados para enriquecer o conteúdo',
-        '3. Formate o texto com quebras de linha adequadas para melhor legibilidade',
-        '4. Mantenha o texto conciso e impactante',
-        '5. Inclua uma mensagem positiva ou motivacional',
-        '6. NÃO inclua um título separado - o status deve ser uma mensagem coesa'
+        '1. Crie uma frase impactante e motivacional com no máximo 120 caracteres',
+        '2. Use emojis estrategicamente para reforçar a mensagem (máximo 2 emojis)',
+        '3. Mantenha a estrutura concisa e direta',
+        '4. Foque em emoções positivas e inspiração',
+        '5. Evite clichês e frases previsíveis',
+        '6. NÃO inclua um título separado - o status deve ser uma mensagem coesa',
+        '7. NÃO use hashtags',
+        '8. NÃO inclua frases complementares ou comentários além do status principal'
       ];
 
-      if (!includeHashtags) {
-        requirements.push('7. NÃO use hashtags');
-      }
-
-      if (!includeComplementaryPhrase) {
-        requirements.push('8. NÃO inclua frases complementares ou comentários além do status principal');
-      }
-
       // Preparar o prompt para a IA
-      let prompt = 'Você é um criador de status profissionais para redes sociais. ';
-      prompt += 'Crie um status com base no seguinte tema: "' + theme + '"\n\n';
-      prompt += 'Requisitos:\n';
+      let prompt = 'Você é um especialista em criação de status para redes sociais. ';
+      prompt += 'Sua tarefa é criar uma única frase impactante com base no seguinte tema: "' + theme + '"\n\n';
+      prompt += 'REQUISITOS OBRIGATÓRIOS:\n';
       prompt += requirements.join('\n') + '\n\n';
-      prompt += 'Exemplo de formato:\n';
-      prompt += '"Acredite no seu potencial e siga em frente. \n';
-      prompt += 'Cada passo é uma vitória.\n\n';
-      prompt += '🚀"\n\n';
-      prompt += 'Além disso, inclua no final do texto:\n';
-      prompt += '- Uma linha com "background: #HEX" (substitua HEX pela cor de fundo apropriada)\n';
-      prompt += '- Uma linha com "text: #HEX" (substitua HEX pela cor de texto que contraste bem)\n\n';
-      prompt += 'Exemplo completo:\n';
-      prompt += '"Acredite no seu potencial e siga em frente. \n';
-      prompt += 'Cada passo é uma vitória.\n\n';
-      prompt += '🚀\n\n';
-      prompt += 'background: #1a535c\n';
-      prompt += 'text: #f7fff7"\n\n';
-      prompt += 'Retorne APENAS o conteúdo do status com as linhas de cores, nada além.';
+      prompt += 'ESTRUTURA ESPERADA:\n';
+      prompt += '- Frase principal curta e impactante (máximo 120 caracteres)\n';
+      prompt += '- 1-2 emojis relevantes\n';
+      prompt += '- Quebra de linha\n';
+      prompt += '- Linha com "background: #HEX" (cor de fundo apropriada)\n';
+      prompt += '- Linha com "text: #HEX" (cor de texto que contraste bem)\n\n';
+      prompt += 'EXEMPLOS DE STATUS EFICAZES:\n';
+      prompt += '"A persistência transforma sonhos em realidade. 🌟\n\nbackground: #1a535c\ntext: #f7fff7"\n\n';
+      prompt += '"Cada desafio é uma oportunidade disfarçada. 💪\n\nbackground: #4a235a\ntext: #f9e79f"\n\n';
+      prompt += '"A jornada começa com um único passo. 🚶\n\nbackground: #154360\ntext: #aed6f1"\n\n';
+      prompt += 'CRITÉRIOS DE QUALIDADE:\n';
+      prompt += '- Clareza e objetividade\n';
+      prompt += '- Relevância com o tema\n';
+      prompt += '- Impacto emocional\n';
+      prompt += '- Originalidade\n\n';
+      prompt += 'RETORNE APENAS O STATUS FORMATADO EXATAMENTE COMO NOS EXEMPLOS, NADA ALÉM DISSO.';
 
       // Chamar a API do Gemini
       const result = await this.textModel.generateContent(prompt);
@@ -111,7 +107,7 @@ class GeminiService {
       
       // Fallback para conteúdo padrão se a API falhar
       return {
-        text: '"' + theme.charAt(0).toUpperCase() + theme.slice(1) + ' é a força que transforma sonhos em realidade.\n\nAcredite em si mesmo! 🌟"',
+        text: '"' + theme.charAt(0).toUpperCase() + theme.slice(1) + ' é a força que transforma sonhos em realidade."\n\nbackground: #1e3a8a\ntext: #dbeafe',
         backgroundColor: '#1e3a8a',
         textColor: '#dbeafe',
         fontSize: 18,
@@ -309,12 +305,17 @@ class GeminiService {
    * Salva no histórico (para implementação futura)
    */
   async saveToHistory(status: StatusResponse): Promise<void> {
-    const history = await this.getHistory();
-    history.unshift(status);
-    
-    // Manter apenas os últimos 50 itens
-    const trimmedHistory = history.slice(0, 50);
-    localStorage.setItem('statusai_history', JSON.stringify(trimmedHistory));
+    try {
+      const history = await this.getHistory();
+      history.unshift(status);
+      
+      // Manter apenas os últimos 50 itens
+      const trimmedHistory = history.slice(0, 50);
+      localStorage.setItem('statusai_history', JSON.stringify(trimmedHistory));
+    } catch (error) {
+      console.error('Erro ao salvar no histórico:', error);
+      // Não lançar erro pois isso não deve impedir a geração do status
+    }
   }
 }
 

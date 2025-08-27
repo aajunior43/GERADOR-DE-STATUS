@@ -33,13 +33,10 @@ const SimpleCreator = () => {
       console.error('Erro ao gerar status:', error);
       // Fallback com conteúdo básico
       const fallbackContent = {
-        text: `✨ ${theme.toUpperCase()} ✨
+        text: `"${theme.charAt(0).toUpperCase() + theme.slice(1)} é a força que transforma sonhos em realidade." ✨
 
-"${theme.charAt(0).toUpperCase() + theme.slice(1)} é a força
-que transforma sonhos
-em realidade."
-
-VIVA COM PROPÓSITO! 🚀`,
+background: #1a1a2e
+text: #f39c12`,
         backgroundColor: '#1a1a2e',
         textColor: '#f39c12',
         fontSize: 20,

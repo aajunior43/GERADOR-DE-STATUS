@@ -33,21 +33,22 @@ const ImprovedCreator = () => {
         theme,
         style: 'modern',
         aspectRatio: '9:16',
+        includeComplementaryPhrase: false,
       });
       
       setGeneratedContent(response.generatedContent);
+      
+      // Salvar no histórico
+      await geminiService.saveToHistory(response);
       
     } catch (error) {
       console.error('Erro ao gerar status:', error);
       // Fallback com conteúdo básico
       const fallbackContent = {
-        text: `✨ ${theme.toUpperCase()} ✨
+        text: `"${theme.charAt(0).toUpperCase() + theme.slice(1)} é a força que transforma sonhos em realidade." ✨
 
-"${theme.charAt(0).toUpperCase() + theme.slice(1)} é a força
-que transforma sonhos
-em realidade."
-
-VIVA COM PROPÓSITO! 🚀`,
+background: #1a1a2e
+text: #f39c12`,
         backgroundColor: '#1a1a2e',
         textColor: '#f39c12',
         fontSize: 20,
@@ -399,12 +400,33 @@ VIVA COM PROPÓSITO! 🚀`,
                   </button>
                   
                   <button
+                    onClick={() => {
+                      // Função para adicionar aos favoritos
+                      if (generatedContent) {
+                        try {
+                          const favorites = JSON.parse(localStorage.getItem('statusai_favorites') || '[]');
+                          const newFavorite = {
+                            generatedContent,
+                            metadata: {
+                              timestamp: Date.now(),
+                              prompt: `Tema: ${theme} - ${generatedContent.text}`
+                            }
+                          };
+                          favorites.unshift(newFavorite);
+                          localStorage.setItem('statusai_favorites', JSON.stringify(favorites.slice(0, 50)));
+                          alert('Status adicionado aos favoritos!');
+                        } catch (error) {
+                          console.error('Erro ao adicionar aos favoritos:', error);
+                          alert('Erro ao adicionar aos favoritos');
+                        }
+                      }
+                    }}
                     className="px-3 py-2 sm:px-4 sm:py-2.5 bg-gray-800/50 border border-gray-600/50 text-gray-300 hover:text-white hover:border-yellow-500/50 rounded-lg transition-all duration-300 flex items-center space-x-1.5 sm:space-x-2 text-xs sm:text-sm backdrop-blur-sm"
                   >
                     <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                     </svg>
-                    <span>Compartilhar</span>
+                    <span>Favoritar</span>
                   </button>
                 </div>
               )}
@@ -448,12 +470,33 @@ VIVA COM PROPÓSITO! 🚀`,
               </button>
               
               <button
+                onClick={() => {
+                  // Função para adicionar aos favoritos
+                  if (generatedContent) {
+                    try {
+                      const favorites = JSON.parse(localStorage.getItem('statusai_favorites') || '[]');
+                      const newFavorite = {
+                        generatedContent,
+                        metadata: {
+                          timestamp: Date.now(),
+                          prompt: `Tema: ${theme} - ${generatedContent.text}`
+                        }
+                      };
+                      favorites.unshift(newFavorite);
+                      localStorage.setItem('statusai_favorites', JSON.stringify(favorites.slice(0, 50)));
+                      alert('Status adicionado aos favoritos!');
+                    } catch (error) {
+                      console.error('Erro ao adicionar aos favoritos:', error);
+                      alert('Erro ao adicionar aos favoritos');
+                    }
+                  }
+                }}
                 className="px-4 py-2.5 bg-gray-800/50 border border-gray-600/50 text-gray-300 hover:text-white hover:border-yellow-500/50 rounded-lg transition-all duration-300 flex items-center space-x-2 text-sm backdrop-blur-sm"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                 </svg>
-                <span>Compartilhar</span>
+                <span>Favoritar</span>
               </button>
             </div>
           </div>
