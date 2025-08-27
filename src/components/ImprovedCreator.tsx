@@ -1,9 +1,12 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import LivePreview from './LivePreview';
+import StyleSelector from './StyleSelector';
 
 const ImprovedCreator = () => {
   const [theme, setTheme] = useState('');
+  const [style, setStyle] = useState('modern');
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedContent, setGeneratedContent] = useState<any>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -31,7 +34,7 @@ const ImprovedCreator = () => {
       
       const response = await geminiService.generateStatus({
         theme,
-        style: 'modern',
+        style: style as any,
         aspectRatio: '9:16',
         includeComplementaryPhrase: false,
       });
@@ -104,6 +107,9 @@ text: #f39c12`,
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 360, 640);
 
+    // Adicionar partículas de fundo
+    drawBackgroundParticles(ctx, baseColor);
+
     // Adicionar decorações
     drawDecorations(ctx, baseColor);
 
@@ -141,13 +147,13 @@ text: #f39c12`,
 
     // Configurar e desenhar texto
     ctx.fillStyle = generatedContent.textColor;
-    ctx.font = `${generatedContent.fontSize}px ${generatedContent.fontFamily}`;
+    ctx.font = `bold ${generatedContent.fontSize}px ${generatedContent.fontFamily}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
 
-    // Sombra no texto
-    ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
-    ctx.shadowBlur = 4;
+    // Sombra no texto mais suave
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+    ctx.shadowBlur = 6;
     ctx.shadowOffsetX = 2;
     ctx.shadowOffsetY = 2;
 
@@ -155,10 +161,48 @@ text: #f39c12`,
     const totalTextHeight = processedLines.length * lineHeight;
     const startY = (640 - totalTextHeight) / 2 + lineHeight / 2;
 
+    // Desenhar um fundo sutil atrás do texto para melhor legibilidade
+    if (processedLines.length > 0) {
+      const textWidth = ctx.measureText(processedLines[0]).width;
+      ctx.save();
+      ctx.globalAlpha = 0.1;
+      ctx.fillStyle = generatedContent.textColor;
+      
+      // Verificar se o contexto suporta roundRect
+      if (ctx.roundRect) {
+        ctx.beginPath();
+        ctx.roundRect(
+          180 - (textWidth / 2) - 20, 
+          startY - (lineHeight / 2) - 10,
+          textWidth + 40,
+          totalTextHeight + 20,
+          15
+        );
+        ctx.fill();
+      } else {
+        // Fallback para retângulo normal
+        ctx.fillRect(
+          180 - (textWidth / 2) - 20, 
+          startY - (lineHeight / 2) - 10,
+          textWidth + 40,
+          totalTextHeight + 20
+        );
+      }
+      ctx.restore();
+    }
+
     processedLines.forEach((line, index) => {
       if (line.trim() !== '') {
         const x = 180;
         const y = startY + (index * lineHeight);
+        
+        // Adicionar um contorno sutil ao texto para melhor contraste
+        ctx.save();
+        ctx.strokeStyle = 'rgba(0, 0, 0, 0.2)';
+        ctx.lineWidth = 1;
+        ctx.strokeText(line, x, y);
+        ctx.restore();
+        
         ctx.fillText(line, x, y);
       }
     });
@@ -200,6 +244,41 @@ text: #f39c12`,
     ctx.beginPath();
     ctx.arc(60, 540, 60, 0, Math.PI * 2);
     ctx.fill();
+    
+    // Adicionar formas geométricas para mais interesse visual
+    ctx.globalAlpha = 0.05;
+    ctx.beginPath();
+    ctx.moveTo(20, 20);
+    ctx.lineTo(60, 20);
+    ctx.lineTo(40, 50);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.beginPath();
+    ctx.arc(320, 600, 30, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.restore();
+  };
+
+  // Função para desenhar partículas de fundo
+  const drawBackgroundParticles = (ctx: CanvasRenderingContext2D, baseColor: string) => {
+    ctx.save();
+    
+    const particleColor = adjustBrightness(baseColor, 30);
+    ctx.fillStyle = particleColor;
+    ctx.globalAlpha = 0.05;
+    
+    // Desenhar partículas pequenas
+    for (let i = 0; i < 20; i++) {
+      const x = Math.random() * 360;
+      const y = Math.random() * 640;
+      const radius = Math.random() * 3 + 1;
+      
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
     
     ctx.restore();
   };
@@ -360,6 +439,15 @@ text: #f39c12`,
                 {/* Elementos decorativos */}
                 <div className="absolute -top-2 -right-2 w-4 h-4 sm:w-5 sm:h-5 bg-yellow-500/20 rounded-full blur-sm hidden sm:block"></div>
                 <div className="absolute -bottom-2 -left-2 w-3 h-3 sm:w-4 sm:h-4 bg-yellow-600/30 rounded-full blur-sm hidden sm:block"></div>
+              </div>
+              
+              {/* Pré-visualização em tempo real */}
+              <div className="mt-4">
+                <h3 className="text-white font-semibold mb-2 text-xs sm:text-sm flex items-center">
+                  <span className="mr-2">👁️</span>
+                  Pré-visualização:
+                </h3>
+                <LivePreview theme={theme} generatedContent={generatedContent} />
               </div>
               
               {/* Texto gerado - responsivo */}

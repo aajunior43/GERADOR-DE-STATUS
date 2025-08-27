@@ -68,8 +68,14 @@ class GeminiService {
       prompt += '- Frase principal curta e impactante (máximo 120 caracteres)\n';
       prompt += '- 1-2 emojis relevantes\n';
       prompt += '- Quebra de linha\n';
-      prompt += '- Linha com "background: #HEX" (cor de fundo apropriada)\n';
-      prompt += '- Linha com "text: #HEX" (cor de texto que contraste bem)\n\n';
+      prompt += '- Linha com "background: #HEX" (cor de fundo apropriada que combine com o tema)\n';
+      prompt += '- Linha com "text: #HEX" (cor de texto que contraste bem e seja legível)\n\n';
+      prompt += 'DIRETRIZES PARA ESCOLHA DE CORES:\n';
+      prompt += '- Escolha cores que transmitam a emoção do tema\n';
+      prompt += '- Use paletas harmoniosas e profissionais\n';
+      prompt += '- Evite cores muito vibrantes que dificultem a leitura\n';
+      prompt += '- O texto deve ter alto contraste com o fundo\n';
+      prompt += '- Prefira tons escuros para fundo e claros para texto, ou vice-versa\n\n';
       prompt += 'EXEMPLOS DE STATUS EFICAZES:\n';
       prompt += '"A persistência transforma sonhos em realidade. 🌟\n\nbackground: #1a535c\ntext: #f7fff7"\n\n';
       prompt += '"Cada desafio é uma oportunidade disfarçada. 💪\n\nbackground: #4a235a\ntext: #f9e79f"\n\n';
@@ -78,7 +84,8 @@ class GeminiService {
       prompt += '- Clareza e objetividade\n';
       prompt += '- Relevância com o tema\n';
       prompt += '- Impacto emocional\n';
-      prompt += '- Originalidade\n\n';
+      prompt += '- Originalidade\n';
+      prompt += '- Cores harmoniosas e legíveis\n\n';
       prompt += 'RETORNE APENAS O STATUS FORMATADO EXATAMENTE COMO NOS EXEMPLOS, NADA ALÉM DISSO.';
 
       // Chamar a API do Gemini
@@ -89,10 +96,11 @@ class GeminiService {
       // Extrair texto e cores da resposta da IA
       let { text, backgroundColor, textColor } = this.extractColorsFromText(rawText);
 
-      // Se não conseguirmos extrair as cores, usar cores padrão
+      // Se não conseguirmos extrair as cores, gerar uma paleta baseada no tema
       if (!backgroundColor || !textColor) {
-        backgroundColor = backgroundColor || '#1e3a8a';
-        textColor = textColor || '#dbeafe';
+        const colorPalette = this.generateColorPalette(theme);
+        backgroundColor = backgroundColor || colorPalette.backgroundColor;
+        textColor = textColor || colorPalette.textColor;
       }
 
       return {
@@ -105,36 +113,24 @@ class GeminiService {
     } catch (error) {
       console.error('Erro ao gerar conteúdo com Gemini:', error);
       
+      // Usar paleta de cores baseada no tema
+      const colorPalette = this.generateColorPalette(theme);
+      
       // Fallback para conteúdo padrão se a API falhar
       return {
-        text: '"' + theme.charAt(0).toUpperCase() + theme.slice(1) + ' é a força que transforma sonhos em realidade."\n\nbackground: #1e3a8a\ntext: #dbeafe',
-        backgroundColor: '#1e3a8a',
-        textColor: '#dbeafe',
+        text: '"' + theme.charAt(0).toUpperCase() + theme.slice(1) + ' é a força que transforma sonhos em realidade.\"
+
+background: ' + colorPalette.backgroundColor + '
+text: ' + colorPalette.textColor,
+        backgroundColor: colorPalette.backgroundColor,
+        textColor: colorPalette.textColor,
         fontSize: 18,
         fontFamily: 'Inter'
       };
     }
   }
 
-  /**
-   * Função auxiliar para extrair cores da resposta da IA
-   */
-  private extractColorsFromText(text: string): { text: string; backgroundColor?: string; textColor?: string } {
-    // Procurar padrões de cor hexadecimal no texto
-    const bgMatch = text.match(/(?:background|fundo):\s*(#[0-9a-fA-F]{6})/i);
-    const textMatch = text.match(/(?:text|texto):\s*(#[0-9a-fA-F]{6})/i);
-
-    // Remover linhas com menções a cores do texto final
-    const cleanText = text
-      .replace(/(?:background|fundo|text|texto):\s*#[0-9a-fA-F]{6}/gi, '')
-      .trim();
-
-    return {
-      text: cleanText,
-      backgroundColor: bgMatch ? bgMatch[1] : undefined,
-      textColor: textMatch ? textMatch[1] : undefined
-    };
-  }
+  /**\n   * Função auxiliar para extrair cores da resposta da IA\n   */\n  private extractColorsFromText(text: string): { text: string; backgroundColor?: string; textColor?: string } {\n    // Procurar padrões de cor hexadecimal no texto\n    const bgMatch = text.match(/(?:background|fundo):\\s*(#[0-9a-fA-F]{6})/i);\n    const textMatch = text.match(/(?:text|texto):\\s*(#[0-9a-fA-F]{6})/i);\n\n    // Remover linhas com menções a cores do texto final\n    const cleanText = text\n      .replace(/(?:background|fundo|text|texto):\\s*#[0-9a-fA-F]{6}/gi, '')\n      .trim();\n\n    return {\n      text: cleanText,\n      backgroundColor: bgMatch ? bgMatch[1] : undefined,\n      textColor: textMatch ? textMatch[1] : undefined\n    };\n  }\n\n  /**\n   * Gera uma paleta de cores harmoniosa com base em um tema\n   */\n  private generateColorPalette(theme: string): { backgroundColor: string; textColor: string } {\n    // Paletas de cores pré-definidas para diferentes temas\n    const colorPalettes: Record<string, { backgroundColor: string; textColor: string }[]> = {\n      'motivacao': [\n        { backgroundColor: '#1a535c', textColor: '#f7fff7' },\n        { backgroundColor: '#4a235a', textColor: '#f9e79f' },\n        { backgroundColor: '#154360', textColor: '#aed6f1' }\n      ],\n      'amor': [\n        { backgroundColor: '#8e1e3d', textColor: '#ffebf0' },\n        { backgroundColor: '#6c3483', textColor: '#f3e5f5' },\n        { backgroundColor: '#cb4335', textColor: '#fdf2f2' }\n      ],\n      'sucesso': [\n        { backgroundColor: '#0b5345', textColor: '#e8f6f3' },\n        { backgroundColor: '#7d6642', textColor: '#fef9e7' },\n        { backgroundColor: '#1a5276', textColor: '#ebf5fb' }\n      ],\n      'foco': [\n        { backgroundColor: '#154360', textColor: '#aed6f1' },\n        { backgroundColor: '#4a235a', textColor: '#f9e79f' },\n        { backgroundColor: '#0b5345', textColor: '#e8f6f3' }\n      ],\n      'gratidao': [\n        { backgroundColor: '#7d6642', textColor: '#fef9e7' },\n        { backgroundColor: '#1a5276', textColor: '#ebf5fb' },\n        { backgroundColor: '#6c3483', textColor: '#f3e5f5' }\n      ],\n      'paz': [\n        { backgroundColor: '#0b5345', textColor: '#e8f6f3' },\n        { backgroundColor: '#154360', textColor: '#aed6f1' },\n        { backgroundColor: '#1a535c', textColor: '#f7fff7' }\n      ],\n      'forca': [\n        { backgroundColor: '#6c3483', textColor: '#f3e5f5' },\n        { backgroundColor: '#cb4335', textColor: '#fdf2f2' },\n        { backgroundColor: '#1a5276', textColor: '#ebf5fb' }\n      ],\n      'esperanca': [\n        { backgroundColor: '#1a535c', textColor: '#f7fff7' },\n        { backgroundColor: '#7d6642', textColor: '#fef9e7' },\n        { backgroundColor: '#0b5345', textColor: '#e8f6f3' }\n      ]\n    };\n\n    // Encontrar o tema mais próximo nas paletas\n    const themeKey = Object.keys(colorPalettes).find(key => \n      theme.toLowerCase().includes(key)\n    ) || 'motivacao';\n\n    // Selecionar uma paleta aleatória do tema\n    const palettes = colorPalettes[themeKey] || colorPalettes['motivacao'];\n    const randomIndex = Math.floor(Math.random() * palettes.length);\n    \n    return palettes[randomIndex];\n  }
 
   /**
    * Gera conteúdo automático baseado no tema
