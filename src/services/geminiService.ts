@@ -46,127 +46,133 @@ class GeminiService {
    * Busca frases famosas em português brasileiro usando a API do Gemini com base no tema fornecido pelo usuário
    */
   private async generateContentWithGemini(theme: string, includeHashtags: boolean = true, includeComplementaryPhrase: boolean = true): Promise<GeneratedContent> {
-    try {
-      // Preparar o prompt para a IA
-      let prompt = 'Você é um especialista em citações famosas, literatura brasileira e mundial, e conhecimento bíblico. ';
-      prompt += 'Sua tarefa é ANALISAR e INTERPRETAR o tema fornecido pelo usuário para determinar se é um tema bíblico ou secular, e então encontrar o conteúdo mais apropriado.\n\n';
-      prompt += 'TEMA FORNECIDO: "' + theme + '"\n\n';
-      prompt += 'ETAPA 1 - ANÁLISE DO TEMA:\n';
-      prompt += 'Analise o tema e determine:\n';
-      prompt += '- É uma referência bíblica específica? (ex: livro bíblico, capítulo, versículo)\n';
-      prompt += '- É um conceito ou tema bíblico geral? (ex: fé, oração, salvação)\n';
-      prompt += '- É um tema secular? (ex: motivação, sucesso, amor romântico)\n';
-      prompt += '- Que tipo de conteúdo seria mais apropriado para esse tema?\n\n';
-      prompt += 'ETAPA 2 - SELEÇÃO DE CONTEÚDO:\n';
-      prompt += 'Com base na sua análise, forneça:\n\n';
-      prompt += 'SE FOR TEMA BÍBLICO:\n';
-      prompt += '- Encontre um versículo bíblico REAL e EXATO em PORTUGUÊS BRASILEIRO\n';
-      prompt += '- Se for mencionado livro/capítulo específico, busque versículo apropriado desse local\n';
-      prompt += '- Use versão ACF ou NVI em português\n';
-      prompt += '- Mantenha fidelidade total ao texto sagrado\n';
-      prompt += '- Formato: "Versículo exato" ✨\nReferência (Livro capítulo:versículo)\n\n';
-      prompt += 'SE FOR TEMA SECULAR:\n';
-      prompt += '- Encontre uma citação famosa REAL em PORTUGUÊS BRASILEIRO\n';
-      prompt += '- Priorize autores reconhecidos mundialmente\n';
-      prompt += '- Se necessário, use tradução fiel para português\n';
-      prompt += '- Formato: "Citação famosa" 🌟\n(Nome do Autor)\n\n';
-      
-      // Remover a detecção automática - deixar a IA decidir
-      const isBiblicalTheme = false; // A IA vai determinar isso
-      prompt += 'REQUISITOS GERAIS:\n';
-      prompt += '1. Conteúdo deve estar em PORTUGUÊS BRASILEIRO\n';
-      prompt += '2. Máximo 150 caracteres para a frase principal\n';
-      prompt += '3. Adicionar 1-2 emojis apropriados\n';
-      prompt += '4. NÃO inventar citações ou versículos\n';
-      prompt += '5. Usar apenas conteúdo real e verificável\n';
-      prompt += '6. NÃO usar hashtags\n\n';
-      
-      prompt += 'ESTRUTURA DE SAÍDA:\n';
-      prompt += 'Retorne apenas o conteúdo formatado da seguinte forma:\n';
-      prompt += '- Linha 1: Texto da citação/versículo com emojis\n';
-      prompt += '- Linha 2: Autor entre parênteses OU referência bíblica\n';
-      prompt += '- Linha 3: (vazia)\n';
-      prompt += '- Linha 4: background: #XXXXXX\n';
-      prompt += '- Linha 5: text: #XXXXXX\n\n';
-      prompt += 'DIRETRIZES PARA ESCOLHA DE CORES:\n';
-      prompt += '- Escolha cores que transmitam a emoção do tema\n';
-      prompt += '- Use paletas harmoniosas e profissionais\n';
-      prompt += '- Evite cores muito vibrantes que dificultem a leitura\n';
-      prompt += '- O texto deve ter alto contraste com o fundo\n';
-      prompt += '- Prefira tons escuros para fundo e claros para texto, ou vice-versa\n';
-      prompt += '- Considere o significado psicológico das cores:\n';
-      prompt += '  * Azuis: confiança, tranquilidade, profissionalismo\n';
-      prompt += '  * Verdes: crescimento, harmonia, equilíbrio\n';
-      prompt += '  * Roxos: criatividade, sabedoria, espiritualidade\n';
-      prompt += '  * Vermelhos: energia, paixão, força\n';
-      prompt += '  * Amarelos: otimismo, criatividade, clareza\n';
-      prompt += '  * Laranjas: entusiasmo, sucesso, vitalidade\n';
-      prompt += '  * Rosas: amor, compaixão, gentileza\n';
-      prompt += '  * Neutras: elegância, sofisticação, versatilidade\n\n';
+    const maxRetries = 2;
+    let lastError: Error | null = null;
 
-      
-      prompt += 'EXEMPLOS:\n\n';
-      prompt += 'Exemplo Bíblico:\n';
-      prompt += '"Tudo posso naquele que me fortalece." ✨\nFilipenses 4:13\n\nbackground: #1a3c6c\ntext: #fff8e1\n\n';
-      prompt += 'Exemplo Secular:\n';
-      prompt += '"A persistência é o caminho do êxito." 🌟\n(Charles Chaplin)\n\nbackground: #1a535c\ntext: #f7fff7\n\n';
-      prompt += 'IMPORTANTE:\n';
-      prompt += '- Use sua inteligência para interpretar o tema corretamente\n';
-      prompt += '- Se houver dúvida sobre ser bíblico ou secular, considere o contexto\n';
-      prompt += '- Todas as citações devem estar em PORTUGUÊS BRASILEIRO\n';
-      prompt += '- Escolha cores harmoniosas que combinem com o tema\n\n';
-      prompt += 'RETORNE APENAS O STATUS FORMATADO, NADA ALÉM DISSO.';
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Tentativa ${attempt}/${maxRetries} para o tema: ${theme}`);
 
-      // Chamar a API do Gemini
-      const result = await this.textModel.generateContent(prompt);
-      const response = await result.response;
-      const rawText = response.text();
+        // Prompt otimizado para máxima eficiência e qualidade
+        const prompt = `🎯 TEMA: "${theme}"
 
-      // Extrair texto e cores da resposta da IA
-      let { text, backgroundColor, textColor } = this.extractColorsFromText(rawText);
+📋 INSTRUÇÕES:
+Analise o tema e gere conteúdo inspiracional seguindo as regras abaixo.
 
-      // Se não conseguirmos extrair as cores, gerar uma paleta baseada no tema
-      if (!backgroundColor || !textColor) {
-        const colorPalette = this.generateColorPalette(theme);
-        backgroundColor = backgroundColor || colorPalette.backgroundColor;
-        textColor = textColor || colorPalette.textColor;
+🔍 DETECÇÃO AUTOMÁTICA:
+• Palavras-chave bíblicas (fé, oração, Deus, Jesus, salvação, bíblia, versículo, salmo, provérbios, etc.) → VERSÍCULO REAL
+• Palavras-chave seculares (motivação, sucesso, amor, vida, trabalho, sonhos, etc.) → CITAÇÃO FAMOSA REAL
+
+✅ REQUISITOS OBRIGATÓRIOS:
+• Português brasileiro impecável
+• Frase principal: máximo 90 caracteres
+• Apenas 1 emoji no final da frase
+• Conteúdo 100% real e verificável
+• Zero hashtags ou texto promocional
+
+📝 FORMATO EXATO (copie esta estrutura):
+"[Frase inspiracional]" [emoji]
+[Autor/Referência]
+
+background: #[6 dígitos]
+text: #[6 dígitos]
+
+🎨 CORES INTELIGENTES:
+• Bíblico: #1a3c6c + #fff8e1 (azul profundo + creme)
+• Motivação: #2c3e50 + #ecf0f1 (cinza escuro + claro)
+• Amor: #8e1e3d + #ffebf0 (bordô + rosa claro)
+• Sucesso: #d4af37 + #1a1a1a (dourado + preto)
+• Paz: #3498db + #ffffff (azul + branco)
+• Força: #e74c3c + #ffffff (vermelho + branco)
+• Sabedoria: #4a235a + #f9e79f (roxo + amarelo claro)
+
+💡 EXEMPLOS PERFEITOS:
+
+Para tema bíblico:
+"Tudo posso naquele que me fortalece." ✨
+Filipenses 4:13
+
+background: #1a3c6c
+text: #fff8e1
+
+Para tema secular:
+"A persistência é o caminho do êxito." 🌟
+(Charles Chaplin)
+
+background: #2c3e50
+text: #ecf0f1
+
+⚠️ CRÍTICO: Retorne SOMENTE o conteúdo no formato especificado. Nenhum texto adicional.`;
+
+        // Chamar a API do Gemini
+        const result = await this.textModel.generateContent(prompt);
+        const response = await result.response;
+        const rawText = response.text();
+
+        console.log(`Resposta bruta do Gemini (tentativa ${attempt}):`, rawText);
+
+        // Validar e melhorar a resposta
+        const { text, backgroundColor, textColor } = this.validateAndImproveResponse(rawText, theme);
+
+        // Verificar se a resposta é válida
+        if (!text || text.length < 10) {
+          throw new Error('Resposta muito curta ou inválida');
+        }
+
+        console.log('Resposta processada com sucesso:', { text, backgroundColor, textColor });
+
+        return {
+          text: text.trim(),
+          backgroundColor,
+          textColor,
+          fontSize: 20,
+          fontFamily: 'Inter'
+        };
+
+      } catch (error) {
+        console.error(`Erro na tentativa ${attempt}:`, error);
+        lastError = error instanceof Error ? error : new Error('Erro desconhecido');
+
+        if (attempt === maxRetries) {
+          break; // Sair do loop se foi a última tentativa
+        }
+
+        // Aguardar um pouco antes da próxima tentativa
+        await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
       }
-
-      return {
-        text: text.trim(),
-        backgroundColor,
-        textColor,
-        fontSize: 20,
-        fontFamily: 'Inter'
-      };
-    } catch (error) {
-      console.error('Erro ao gerar conteúdo com Gemini:', error);
-      
-      // Usar paleta de cores baseada no tema
-      const colorPalette = this.generateColorPalette(theme);
-      
-      // Fallback inteligente baseado no conteúdo do tema
-      const themeWords = theme.toLowerCase();
-      let fallbackText;
-      
-      // Usar lógica simples para fallback, mas deixar a IA decidir no caso normal
-      if (themeWords.includes('exod') || themeWords.includes('êxod') || 
-          themeWords.includes('salm') || themeWords.includes('jesus') || 
-          themeWords.includes('deus') || themeWords.includes('bíbli') ||
-          themeWords.includes('versí') || themeWords.includes('fé')) {
-        fallbackText = '"Porque eu sei os planos que tenho para vocês, diz o Senhor." ✨\nJeremias 29:11';
-      } else {
-        fallbackText = '"A vida é o que acontece enquanto você está ocupado fazendo outros planos." 🌟\n(John Lennon)';
-      }
-      
-      return {
-        text: fallbackText,
-        backgroundColor: colorPalette.backgroundColor,
-        textColor: colorPalette.textColor,
-        fontSize: 20,
-        fontFamily: 'Inter'
-      };
     }
+
+    // Se chegou aqui, todas as tentativas falharam - usar fallback inteligente
+    console.error('Todas as tentativas falharam. Usando fallback inteligente.', lastError);
+
+    const colorPalette = this.generateColorPalette(theme);
+    const themeWords = theme.toLowerCase();
+    let fallbackText;
+
+    // Fallback inteligente baseado no tema
+    if (themeWords.includes('fé') || themeWords.includes('fe') ||
+      themeWords.includes('deus') || themeWords.includes('jesus') ||
+      themeWords.includes('bíbli') || themeWords.includes('bibli') ||
+      themeWords.includes('salm') || themeWords.includes('oração') ||
+      themeWords.includes('oracao') || themeWords.includes('versí')) {
+      fallbackText = '"Tudo posso naquele que me fortalece." ✨\nFilipenses 4:13';
+    } else if (themeWords.includes('amor')) {
+      fallbackText = '"O amor é a única força capaz de transformar um inimigo em amigo." 💕\n(Martin Luther King Jr.)';
+    } else if (themeWords.includes('sucesso') || themeWords.includes('vitória')) {
+      fallbackText = '"O sucesso é ir de fracasso em fracasso sem perder o entusiasmo." 🌟\n(Winston Churchill)';
+    } else if (themeWords.includes('paz')) {
+      fallbackText = '"A paz não pode ser mantida à força; só pode ser alcançada pela compreensão." ☮️\n(Albert Einstein)';
+    } else {
+      fallbackText = '"A persistência é o caminho do êxito." 🌟\n(Charles Chaplin)';
+    }
+
+    return {
+      text: fallbackText,
+      backgroundColor: colorPalette.backgroundColor,
+      textColor: colorPalette.textColor,
+      fontSize: 20,
+      fontFamily: 'Inter'
+    };
   }
 
   /**
@@ -177,20 +183,20 @@ class GeminiService {
       const r = parseInt(hex.substr(1, 2), 16) / 255;
       const g = parseInt(hex.substr(3, 2), 16) / 255;
       const b = parseInt(hex.substr(5, 2), 16) / 255;
-      
+
       const a = [r, g, b].map(v => {
         return (v <= 0.03928) ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
       });
-      
+
       return a[0] * 0.2126 + a[1] * 0.7152 + a[2] * 0.0722;
     };
-    
+
     const bgLuminance = getLuminance(bgColor);
     const textLuminance = getLuminance(textColor);
-    
+
     const lighter = Math.max(bgLuminance, textLuminance);
     const darker = Math.min(bgLuminance, textLuminance);
-    
+
     return (lighter + 0.05) / (darker + 0.05);
   }
 
@@ -230,14 +236,14 @@ class GeminiService {
 
     // Normalizar o tema para encontrar a paleta correspondente
     const normalizedTheme = theme.toLowerCase();
-    
+
     // Procurar por tema exato
     for (const [key, palette] of Object.entries(colorPalettes)) {
       if (key !== 'default' && normalizedTheme.includes(key)) {
         return palette;
       }
     }
-    
+
     // Retornar paleta padrão se não encontrar correspondência
     return colorPalettes.default;
   }
@@ -265,7 +271,7 @@ class GeminiService {
   async generateStatus(request: StatusRequest): Promise<StatusResponse> {
     try {
       console.log('Gerando status com request:', request);
-      
+
       // Validação básica
       if (!request.theme.trim()) {
         throw new Error('Tema é obrigatório para gerar o status');
@@ -318,11 +324,11 @@ class GeminiService {
     try {
       console.log('Gerando imagem com request:', request);
       console.log('Prompt:', prompt);
-      
+
       // Tentar usar a API do Gemini para geração de imagens
       // Por enquanto, ainda usando placeholder como fallback
       // Mas estruturado para fácil integração futura
-      
+
       // Simular delay da API
       await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 2000));
 
@@ -334,10 +340,10 @@ class GeminiService {
       // Usar um serviço de placeholder mais avançado
       const width = 360;
       const height = 640;
-      
+
       const imageUrl = `https://placehold.co/${width}x${height}/${bgColor}/${textColor}?text=${encodedText}`;
       console.log('URL da imagem gerada:', imageUrl);
-      
+
       return imageUrl;
     } catch (error) {
       console.error('Erro ao gerar imagem com Gemini:', error);
@@ -347,7 +353,7 @@ class GeminiService {
       const bgColor = (request.backgroundColor || '#1E1E1E').replace('#', '');
       const textColor = (request.textColor || '#FFFFFF').replace('#', '');
       const encodedText = encodeURIComponent("Status gerado");
-      
+
       return `https://placehold.co/${width}x${height}/${bgColor}/${textColor}?text=${encodedText}`;
     }
   }
@@ -423,7 +429,7 @@ class GeminiService {
     try {
       const history = await this.getHistory();
       history.unshift(status);
-      
+
       // Manter apenas os últimos 50 itens
       const trimmedHistory = history.slice(0, 50);
       localStorage.setItem('statusai_history', JSON.stringify(trimmedHistory));
@@ -433,33 +439,87 @@ class GeminiService {
     }
   }
 
+  /**
+   * Extrai e valida cores do texto gerado pelo Gemini
+   */
   private extractColorsFromText(text: string): { text: string; backgroundColor: string; textColor: string } {
-    const lines = text.split('\n');
+    const lines = text.split('\n').map(line => line.trim()).filter(line => line);
     let extractedText = '';
     let backgroundColor = '';
     let textColor = '';
 
-    const backgroundRegex = /background:\s*(#[0-9a-fA-F]{6})/;
-    const textRegex = /text:\s*(#[0-9a-fA-F]{6})/;
+    const backgroundRegex = /background:\s*(#[0-9a-fA-F]{6})/i;
+    const textRegex = /text:\s*(#[0-9a-fA-F]{6})/i;
 
     lines.forEach(line => {
       const bgMatch = line.match(backgroundRegex);
       const textMatch = line.match(textRegex);
 
       if (bgMatch) {
-        backgroundColor = bgMatch[1];
+        backgroundColor = bgMatch[1].toUpperCase();
       } else if (textMatch) {
-        textColor = textMatch[1];
-      } else if (line.trim() !== '') {
+        textColor = textMatch[1].toUpperCase();
+      } else if (!line.includes('background:') && !line.includes('text:')) {
         extractedText += line + '\n';
       }
     });
+
+    // Validar contraste das cores extraídas
+    if (backgroundColor && textColor) {
+      const contrast = this.getContrastRatio(backgroundColor, textColor);
+      if (contrast < 4.5) {
+        console.warn(`Contraste baixo detectado (${contrast.toFixed(2)}). Ajustando cores...`);
+        // Se o contraste for baixo, usar cores padrão com bom contraste
+        if (backgroundColor.startsWith('#F') || backgroundColor.startsWith('#E') || backgroundColor.startsWith('#D')) {
+          textColor = '#1A1A1A'; // Texto escuro para fundos claros
+        } else {
+          textColor = '#FFFFFF'; // Texto claro para fundos escuros
+        }
+      }
+    }
 
     return {
       text: extractedText.trim(),
       backgroundColor,
       textColor,
     };
+  }
+
+  /**
+   * Valida e melhora a resposta do Gemini
+   */
+  private validateAndImproveResponse(rawResponse: string, theme: string): { text: string; backgroundColor: string; textColor: string } {
+    let { text, backgroundColor, textColor } = this.extractColorsFromText(rawResponse);
+
+    // Limpar texto de possíveis artefatos
+    text = text
+      .replace(/^["']|["']$/g, '') // Remove aspas do início/fim
+      .replace(/\s+/g, ' ') // Normaliza espaços
+      .trim();
+
+    // Validar comprimento do texto
+    if (text.length > 200) {
+      console.warn('Texto muito longo, truncando...');
+      text = text.substring(0, 197) + '...';
+    }
+
+    // Garantir que temos cores válidas
+    if (!backgroundColor || !textColor) {
+      const fallbackColors = this.generateColorPalette(theme);
+      backgroundColor = backgroundColor || fallbackColors.backgroundColor;
+      textColor = textColor || fallbackColors.textColor;
+    }
+
+    // Validar formato das cores
+    const colorRegex = /^#[0-9A-F]{6}$/i;
+    if (!colorRegex.test(backgroundColor)) {
+      backgroundColor = '#2C3E50';
+    }
+    if (!colorRegex.test(textColor)) {
+      textColor = '#ECF0F1';
+    }
+
+    return { text, backgroundColor, textColor };
   }
 }
 
