@@ -47,66 +47,47 @@ class GeminiService {
    */
   private async generateContentWithGemini(theme: string, includeHashtags: boolean = true, includeComplementaryPhrase: boolean = true): Promise<GeneratedContent> {
     try {
-      // Construir requisitos para buscar frases famosas
-      let requirements = [
-        '1. Encontre uma citação famosa em PORTUGUÊS BRASILEIRO relacionada ao tema fornecido',
-        '2. A frase deve ter no máximo 150 caracteres para caber bem no status',
-        '3. SEMPRE inclua o autor da frase entre parênteses ao final',
-        '4. Use aspas para delimitar a frase',
-        '5. Adicione 1-2 emojis apropriados ao tema',
-        '6. Priorize frases de autores reconhecidos mundialmente OU suas traduções para português',
-        '7. NÃO invente frases - use apenas citações reais e verificáveis em português',
-        '8. NÃO use hashtags ou comentários adicionais',
-        '9. Se a citação original for em outro idioma, forneça a tradução em português brasileiro'
-      ];
-
       // Preparar o prompt para a IA
-      let prompt = 'Você é um especialista em citações famosas e literatura brasileira e mundial. ';
-      prompt += 'Sua tarefa é encontrar uma citação famosa REAL em PORTUGUÊS BRASILEIRO relacionada ao seguinte tema: "' + theme + '"\n\n';
-      prompt += 'REQUISITOS OBRIGATÓRIOS:\n';
-      prompt += requirements.join('\n') + '\n\n';
+      let prompt = 'Você é um especialista em citações famosas, literatura brasileira e mundial, e conhecimento bíblico. ';
+      prompt += 'Sua tarefa é ANALISAR e INTERPRETAR o tema fornecido pelo usuário para determinar se é um tema bíblico ou secular, e então encontrar o conteúdo mais apropriado.\n\n';
+      prompt += 'TEMA FORNECIDO: "' + theme + '"\n\n';
+      prompt += 'ETAPA 1 - ANÁLISE DO TEMA:\n';
+      prompt += 'Analise o tema e determine:\n';
+      prompt += '- É uma referência bíblica específica? (ex: livro bíblico, capítulo, versículo)\n';
+      prompt += '- É um conceito ou tema bíblico geral? (ex: fé, oração, salvação)\n';
+      prompt += '- É um tema secular? (ex: motivação, sucesso, amor romântico)\n';
+      prompt += '- Que tipo de conteúdo seria mais apropriado para esse tema?\n\n';
+      prompt += 'ETAPA 2 - SELEÇÃO DE CONTEÚDO:\n';
+      prompt += 'Com base na sua análise, forneça:\n\n';
+      prompt += 'SE FOR TEMA BÍBLICO:\n';
+      prompt += '- Encontre um versículo bíblico REAL e EXATO em PORTUGUÊS BRASILEIRO\n';
+      prompt += '- Se for mencionado livro/capítulo específico, busque versículo apropriado desse local\n';
+      prompt += '- Use versão ACF ou NVI em português\n';
+      prompt += '- Mantenha fidelidade total ao texto sagrado\n';
+      prompt += '- Formato: "Versículo exato" ✨\nReferência (Livro capítulo:versículo)\n\n';
+      prompt += 'SE FOR TEMA SECULAR:\n';
+      prompt += '- Encontre uma citação famosa REAL em PORTUGUÊS BRASILEIRO\n';
+      prompt += '- Priorize autores reconhecidos mundialmente\n';
+      prompt += '- Se necessário, use tradução fiel para português\n';
+      prompt += '- Formato: "Citação famosa" 🌟\n(Nome do Autor)\n\n';
       
-      // Instruções especiais para temas bíblicos
-      const normalizedTheme = theme.toLowerCase();
-      const isBiblicalTheme = normalizedTheme.includes('bíblia') || 
-                             normalizedTheme.includes('biblia') || 
-                             normalizedTheme.includes('versículo') || 
-                             normalizedTheme.includes('versiculo') || 
-                             normalizedTheme.includes('capítulo') ||
-                             normalizedTheme.includes('capitulo') ||
-                             normalizedTheme.includes('deus') ||
-                             normalizedTheme.includes('cristo') ||
-                             normalizedTheme.includes('jesus') ||
-                             normalizedTheme.includes('fé') ||
-                             normalizedTheme.includes('fe') ||
-                             normalizedTheme.includes('oração') ||
-                             normalizedTheme.includes('oracao') ||
-                             normalizedTheme.includes('salmo');
-                             
-      if (isBiblicalTheme) {
-        prompt += 'INSTRUÇÕES ESPECIAIS PARA TEMAS BÍBLICOS:\n';
-        prompt += '- Encontre um versículo bíblico REAL e EXATO em PORTUGUÊS BRASILEIRO relacionado ao tema\n';
-        prompt += '- Cite o versículo EXATAMENTE como está escrito na Bíblia em português\n';
-        prompt += '- Inclua a referência bíblica completa (livro, capítulo:versículo)\n';
-        prompt += '- Use a versão Almeida Corrigida Fiel (ACF) ou Nova Versão Internacional (NVI) em português\n';
-        prompt += '- NÃO modifique, parafrase ou adapte o texto bíblico\n';
-        prompt += '- NÃO invente versículos ou referências\n';
-        prompt += '- Mantenha total fidelidade ao texto sagrado em português brasileiro\n\n';
-      }
+      // Remover a detecção automática - deixar a IA decidir
+      const isBiblicalTheme = false; // A IA vai determinar isso
+      prompt += 'REQUISITOS GERAIS:\n';
+      prompt += '1. Conteúdo deve estar em PORTUGUÊS BRASILEIRO\n';
+      prompt += '2. Máximo 150 caracteres para a frase principal\n';
+      prompt += '3. Adicionar 1-2 emojis apropriados\n';
+      prompt += '4. NÃO inventar citações ou versículos\n';
+      prompt += '5. Usar apenas conteúdo real e verificável\n';
+      prompt += '6. NÃO usar hashtags\n\n';
       
-      prompt += 'ESTRUTURA ESPERADA:\n';
-      if (isBiblicalTheme) {
-        prompt += '- Versículo bíblico exato entre aspas\n';
-        prompt += '- Referência bíblica (Livro capítulo:versículo)\n';
-        prompt += '- 1-2 emojis relacionados à fé (✨, 🙏, ❤️, 💫)\n';
-      } else {
-        prompt += '- Citação famosa entre aspas (máximo 150 caracteres)\n';
-        prompt += '- Nome do autor entre parênteses\n';
-        prompt += '- 1-2 emojis apropriados ao tema\n';
-      }
-      prompt += '- Quebra de linha\n';
-      prompt += '- Linha com "background: #HEX" (cor de fundo apropriada que combine com o tema)\n';
-      prompt += '- Linha com "text: #HEX" (cor de texto que contraste bem e seja legível)\n\n';
+      prompt += 'ESTRUTURA DE SAÍDA:\n';
+      prompt += 'Retorne apenas o conteúdo formatado da seguinte forma:\n';
+      prompt += '- Linha 1: Texto da citação/versículo com emojis\n';
+      prompt += '- Linha 2: Autor entre parênteses OU referência bíblica\n';
+      prompt += '- Linha 3: (vazia)\n';
+      prompt += '- Linha 4: background: #XXXXXX\n';
+      prompt += '- Linha 5: text: #XXXXXX\n\n';
       prompt += 'DIRETRIZES PARA ESCOLHA DE CORES:\n';
       prompt += '- Escolha cores que transmitam a emoção do tema\n';
       prompt += '- Use paletas harmoniosas e profissionais\n';
@@ -122,42 +103,19 @@ class GeminiService {
       prompt += '  * Laranjas: entusiasmo, sucesso, vitalidade\n';
       prompt += '  * Rosas: amor, compaixão, gentileza\n';
       prompt += '  * Neutras: elegância, sofisticação, versatilidade\n\n';
+
       
-      if (isBiblicalTheme) {
-        prompt += 'PALETA DE CORES PARA TEMAS BÍBLICOS:\n';
-        prompt += '- Fundos: tons de azul-escuro (#1a3c6c), roxo (#4a235a), marrom (#5d4037)\n';
-        prompt += '- Textos: branco (#ffffff), bege claro (#fff8e1), dourado (#d4af37)\n\n';
-      }
-      
-      prompt += 'EXEMPLOS DE STATUS EFICAZES COM CORES APROPRIADAS:\n';
-      if (isBiblicalTheme) {
-        prompt += '"Tudo posso naquele que me fortalece." ✨\nFilipenses 4:13\n\nbackground: #1a3c6c\ntext: #fff8e1\n';
-        prompt += '(Versículo bíblico em português com referência)\n\n';
-        prompt += '"O Senhor é o meu pastor; nada me faltará." 🙏\nSalmos 23:1\n\nbackground: #4a235a\ntext: #f9e79f\n';
-        prompt += '(Salmo em português com referência bíblica)\n\n';
-      } else {
-        prompt += '"A persistência é o caminho do êxito." 🌟\n(Charles Chaplin)\n\nbackground: #1a535c\ntext: #f7fff7\n';
-        prompt += '(Citação famosa em português com autor)\n\n';
-        prompt += '"A única forma de fazer um excelente trabalho é amar o que você faz." 💪\n(Steve Jobs)\n\nbackground: #4a235a\ntext: #f9e79f\n';
-        prompt += '(Frase motivacional traduzida para português com autor)\n\n';
-      }
-      
-      prompt += 'CRITÉRIOS DE QUALIDADE:\n';
-      if (isBiblicalTheme) {
-        prompt += '- Fidelidade absoluta ao texto bíblico em português\n';
-        prompt += '- Referência bíblica correta e completa\n';
-        prompt += '- Relevância do versículo com o tema\n';
-        prompt += '- Respeitosidade e reverência\n';
-      } else {
-        prompt += '- Autenticidade da citação em português brasileiro\n';
-        prompt += '- Credibilidade do autor\n';
-        prompt += '- Relevância com o tema\n';
-        prompt += '- Impacto inspiracional\n';
-        prompt += '- Tradução fiel para o português (quando aplicável)\n';
-      }
-      prompt += '- Cores harmoniosas e legíveis\n\n';
-      prompt += 'IMPORTANTE: TODAS AS CITAÇÕES DEVEM ESTAR EM PORTUGUÊS BRASILEIRO!\n\n';
-      prompt += 'RETORNE APENAS O STATUS FORMATADO EXATAMENTE COMO NOS EXEMPLOS, NADA ALÉM DISSO.';
+      prompt += 'EXEMPLOS:\n\n';
+      prompt += 'Exemplo Bíblico:\n';
+      prompt += '"Tudo posso naquele que me fortalece." ✨\nFilipenses 4:13\n\nbackground: #1a3c6c\ntext: #fff8e1\n\n';
+      prompt += 'Exemplo Secular:\n';
+      prompt += '"A persistência é o caminho do êxito." 🌟\n(Charles Chaplin)\n\nbackground: #1a535c\ntext: #f7fff7\n\n';
+      prompt += 'IMPORTANTE:\n';
+      prompt += '- Use sua inteligência para interpretar o tema corretamente\n';
+      prompt += '- Se houver dúvida sobre ser bíblico ou secular, considere o contexto\n';
+      prompt += '- Todas as citações devem estar em PORTUGUÊS BRASILEIRO\n';
+      prompt += '- Escolha cores harmoniosas que combinem com o tema\n\n';
+      prompt += 'RETORNE APENAS O STATUS FORMATADO, NADA ALÉM DISSO.';
 
       // Chamar a API do Gemini
       const result = await this.textModel.generateContent(prompt);
@@ -187,20 +145,15 @@ class GeminiService {
       // Usar paleta de cores baseada no tema
       const colorPalette = this.generateColorPalette(theme);
       
-      // Fallback para conteúdo padrão se a API falhar
-      const normalizedTheme = theme.toLowerCase();
-      const isBiblicalTheme = normalizedTheme.includes('bíblia') || 
-                             normalizedTheme.includes('biblia') || 
-                             normalizedTheme.includes('versículo') || 
-                             normalizedTheme.includes('versiculo') || 
-                             normalizedTheme.includes('deus') ||
-                             normalizedTheme.includes('cristo') ||
-                             normalizedTheme.includes('jesus') ||
-                             normalizedTheme.includes('fé') ||
-                             normalizedTheme.includes('salmo');
-      
+      // Fallback inteligente baseado no conteúdo do tema
+      const themeWords = theme.toLowerCase();
       let fallbackText;
-      if (isBiblicalTheme) {
+      
+      // Usar lógica simples para fallback, mas deixar a IA decidir no caso normal
+      if (themeWords.includes('exod') || themeWords.includes('êxod') || 
+          themeWords.includes('salm') || themeWords.includes('jesus') || 
+          themeWords.includes('deus') || themeWords.includes('bíbli') ||
+          themeWords.includes('versí') || themeWords.includes('fé')) {
         fallbackText = '"Porque eu sei os planos que tenho para vocês, diz o Senhor." ✨\nJeremias 29:11';
       } else {
         fallbackText = '"A vida é o que acontece enquanto você está ocupado fazendo outros planos." 🌟\n(John Lennon)';
