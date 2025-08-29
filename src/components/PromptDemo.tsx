@@ -25,15 +25,48 @@ const PromptDemo: React.FC = () => {
   const generateDemoStatus = async (theme: string) => {
     setIsGenerating(true);
     try {
-      const prompt = `Tema: ${theme} - Crie um status para WhatsApp com uma frase principal concisa (máximo 120 caracteres), use no máximo 2 emojis estrategicamente, e forneça cores de fundo e texto que combinem com o tema.`;
+      const prompt = `Tema: ${theme} - Encontre uma citação famosa em português brasileiro relacionada ao tema com o autor entre parênteses.`;
       
       const result = await geminiService.generateStatus({ theme });
       setGeneratedContent(result.generatedContent);
     } catch (error) {
       console.error('Erro ao gerar status:', error);
-      // Fallback para demonstração
-      setGeneratedContent({
-        text: `✨ ${theme.charAt(0).toUpperCase() + theme.slice(1)} é a chave para transformar sonhos em realidade! 💪`,
+      // Fallback para demonstração com citações famosas
+      const fallbackQuotes: Record<string, any> = {
+        'motivação': {
+          text: '"O sucesso é ir de fracasso em fracasso sem perder o entusiasmo." 🌟\n(Winston Churchill)',
+          backgroundColor: '#1e3a8a',
+          textColor: '#dbeafe'
+        },
+        'sucesso': {
+          text: '"O único lugar onde o sucesso vem antes do trabalho é no dicionário." 💪\n(Vidal Sassoon)',
+          backgroundColor: '#1a535c',
+          textColor: '#f7fff7'
+        },
+        'amor': {
+          text: '"Ser profundamente amado por alguém dá-lhe força, enquanto amar alguém profundamente dá-lhe coragem." ❤️\n(Lao Tzu)',
+          backgroundColor: '#8e1e3d',
+          textColor: '#ffebf0'
+        },
+        'gratidão': {
+          text: '"A gratidão não é apenas a maior das virtudes, mas a mãe de todas as outras." 🙏\n(Cícero)',
+          backgroundColor: '#27ae60',
+          textColor: '#f8f9f9'
+        },
+        'determinação': {
+          text: '"A determinação de hoje leva ao sucesso de amanhã." ✨\n(Napoleão Bonaparte)',
+          backgroundColor: '#4a235a',
+          textColor: '#f9e79f'
+        },
+        'felicidade': {
+          text: '"A felicidade não é algo pronto. Ela vem de suas próprias ações." 😊\n(Dalai Lama)',
+          backgroundColor: '#f39c12',
+          textColor: '#2c3e50'
+        }
+      };
+      
+      setGeneratedContent(fallbackQuotes[theme] || {
+        text: `"A vida é o que acontece enquanto você está ocupado fazendo outros planos." 🌟\n(John Lennon)`,
         backgroundColor: '#1e3a8a',
         textColor: '#dbeafe'
       });

@@ -31,9 +31,10 @@ const SimpleCreator = () => {
       
     } catch (error) {
       console.error('Erro ao gerar status:', error);
-      // Fallback com conteúdo básico
+      // Fallback com citação famosa
       const fallbackContent = {
-        text: `"${theme.charAt(0).toUpperCase() + theme.slice(1)} é a força que transforma sonhos em realidade." ✨
+        text: `"O futuro pertence àqueles que acreditam na beleza de seus sonhos." ✨
+(Eleanor Roosevelt)
 
 background: #1a1a2e
 text: #f39c12`,

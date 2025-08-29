@@ -43,30 +43,67 @@ class GeminiService {
   }
 
   /**
-   * Gera conteúdo usando a API do Gemini com base no tema fornecido pelo usuário
+   * Busca frases famosas em português brasileiro usando a API do Gemini com base no tema fornecido pelo usuário
    */
   private async generateContentWithGemini(theme: string, includeHashtags: boolean = true, includeComplementaryPhrase: boolean = true): Promise<GeneratedContent> {
     try {
-      // Construir requisitos dinamicamente com base nas opções
+      // Construir requisitos para buscar frases famosas
       let requirements = [
-        '1. Crie uma frase impactante e motivacional com no máximo 120 caracteres',
-        '2. Use emojis estrategicamente para reforçar a mensagem (máximo 2 emojis)',
-        '3. Mantenha a estrutura concisa e direta',
-        '4. Foque em emoções positivas e inspiração',
-        '5. Evite clichês e frases previsíveis',
-        '6. NÃO inclua um título separado - o status deve ser uma mensagem coesa',
-        '7. NÃO use hashtags',
-        '8. NÃO inclua frases complementares ou comentários além do status principal'
+        '1. Encontre uma citação famosa em PORTUGUÊS BRASILEIRO relacionada ao tema fornecido',
+        '2. A frase deve ter no máximo 150 caracteres para caber bem no status',
+        '3. SEMPRE inclua o autor da frase entre parênteses ao final',
+        '4. Use aspas para delimitar a frase',
+        '5. Adicione 1-2 emojis apropriados ao tema',
+        '6. Priorize frases de autores reconhecidos mundialmente OU suas traduções para português',
+        '7. NÃO invente frases - use apenas citações reais e verificáveis em português',
+        '8. NÃO use hashtags ou comentários adicionais',
+        '9. Se a citação original for em outro idioma, forneça a tradução em português brasileiro'
       ];
 
       // Preparar o prompt para a IA
-      let prompt = 'Você é um especialista em criação de status para redes sociais. ';
-      prompt += 'Sua tarefa é criar uma única frase impactante com base no seguinte tema: "' + theme + '"\n\n';
+      let prompt = 'Você é um especialista em citações famosas e literatura brasileira e mundial. ';
+      prompt += 'Sua tarefa é encontrar uma citação famosa REAL em PORTUGUÊS BRASILEIRO relacionada ao seguinte tema: "' + theme + '"\n\n';
       prompt += 'REQUISITOS OBRIGATÓRIOS:\n';
       prompt += requirements.join('\n') + '\n\n';
+      
+      // Instruções especiais para temas bíblicos
+      const normalizedTheme = theme.toLowerCase();
+      const isBiblicalTheme = normalizedTheme.includes('bíblia') || 
+                             normalizedTheme.includes('biblia') || 
+                             normalizedTheme.includes('versículo') || 
+                             normalizedTheme.includes('versiculo') || 
+                             normalizedTheme.includes('capítulo') ||
+                             normalizedTheme.includes('capitulo') ||
+                             normalizedTheme.includes('deus') ||
+                             normalizedTheme.includes('cristo') ||
+                             normalizedTheme.includes('jesus') ||
+                             normalizedTheme.includes('fé') ||
+                             normalizedTheme.includes('fe') ||
+                             normalizedTheme.includes('oração') ||
+                             normalizedTheme.includes('oracao') ||
+                             normalizedTheme.includes('salmo');
+                             
+      if (isBiblicalTheme) {
+        prompt += 'INSTRUÇÕES ESPECIAIS PARA TEMAS BÍBLICOS:\n';
+        prompt += '- Encontre um versículo bíblico REAL e EXATO em PORTUGUÊS BRASILEIRO relacionado ao tema\n';
+        prompt += '- Cite o versículo EXATAMENTE como está escrito na Bíblia em português\n';
+        prompt += '- Inclua a referência bíblica completa (livro, capítulo:versículo)\n';
+        prompt += '- Use a versão Almeida Corrigida Fiel (ACF) ou Nova Versão Internacional (NVI) em português\n';
+        prompt += '- NÃO modifique, parafrase ou adapte o texto bíblico\n';
+        prompt += '- NÃO invente versículos ou referências\n';
+        prompt += '- Mantenha total fidelidade ao texto sagrado em português brasileiro\n\n';
+      }
+      
       prompt += 'ESTRUTURA ESPERADA:\n';
-      prompt += '- Frase principal curta e impactante (máximo 120 caracteres)\n';
-      prompt += '- 1-2 emojis relevantes\n';
+      if (isBiblicalTheme) {
+        prompt += '- Versículo bíblico exato entre aspas\n';
+        prompt += '- Referência bíblica (Livro capítulo:versículo)\n';
+        prompt += '- 1-2 emojis relacionados à fé (✨, 🙏, ❤️, 💫)\n';
+      } else {
+        prompt += '- Citação famosa entre aspas (máximo 150 caracteres)\n';
+        prompt += '- Nome do autor entre parênteses\n';
+        prompt += '- 1-2 emojis apropriados ao tema\n';
+      }
       prompt += '- Quebra de linha\n';
       prompt += '- Linha com "background: #HEX" (cor de fundo apropriada que combine com o tema)\n';
       prompt += '- Linha com "text: #HEX" (cor de texto que contraste bem e seja legível)\n\n';
@@ -85,21 +122,41 @@ class GeminiService {
       prompt += '  * Laranjas: entusiasmo, sucesso, vitalidade\n';
       prompt += '  * Rosas: amor, compaixão, gentileza\n';
       prompt += '  * Neutras: elegância, sofisticação, versatilidade\n\n';
+      
+      if (isBiblicalTheme) {
+        prompt += 'PALETA DE CORES PARA TEMAS BÍBLICOS:\n';
+        prompt += '- Fundos: tons de azul-escuro (#1a3c6c), roxo (#4a235a), marrom (#5d4037)\n';
+        prompt += '- Textos: branco (#ffffff), bege claro (#fff8e1), dourado (#d4af37)\n\n';
+      }
+      
       prompt += 'EXEMPLOS DE STATUS EFICAZES COM CORES APROPRIADAS:\n';
-      prompt += '"A persistência transforma sonhos em realidade. 🌟\n\nbackground: #1a535c\ntext: #f7fff7"\n';
-      prompt += '(Azul-esverdeado para crescimento e equilíbrio)\n\n';
-      prompt += '"Cada desafio é uma oportunidade disfarçada. 💪\n\nbackground: #4a235a\ntext: #f9e79f"\n';
-      prompt += '(Roxo para criatividade e sabedoria)\n\n';
-      prompt += '"A jornada começa com um único passo. 🚶\n\nbackground: #154360\ntext: #aed6f1"\n';
-      prompt += '(Azul-escuro para confiança e tranquilidade)\n\n';
-      prompt += '"O amor é a força mais poderosa. ❤️\n\nbackground: #8e1e3d\ntext: #ffebf0"\n';
-      prompt += '(Vermelho-escuro para paixão e amor)\n\n';
+      if (isBiblicalTheme) {
+        prompt += '"Tudo posso naquele que me fortalece." ✨\nFilipenses 4:13\n\nbackground: #1a3c6c\ntext: #fff8e1\n';
+        prompt += '(Versículo bíblico em português com referência)\n\n';
+        prompt += '"O Senhor é o meu pastor; nada me faltará." 🙏\nSalmos 23:1\n\nbackground: #4a235a\ntext: #f9e79f\n';
+        prompt += '(Salmo em português com referência bíblica)\n\n';
+      } else {
+        prompt += '"A persistência é o caminho do êxito." 🌟\n(Charles Chaplin)\n\nbackground: #1a535c\ntext: #f7fff7\n';
+        prompt += '(Citação famosa em português com autor)\n\n';
+        prompt += '"A única forma de fazer um excelente trabalho é amar o que você faz." 💪\n(Steve Jobs)\n\nbackground: #4a235a\ntext: #f9e79f\n';
+        prompt += '(Frase motivacional traduzida para português com autor)\n\n';
+      }
+      
       prompt += 'CRITÉRIOS DE QUALIDADE:\n';
-      prompt += '- Clareza e objetividade\n';
-      prompt += '- Relevância com o tema\n';
-      prompt += '- Impacto emocional\n';
-      prompt += '- Originalidade\n';
+      if (isBiblicalTheme) {
+        prompt += '- Fidelidade absoluta ao texto bíblico em português\n';
+        prompt += '- Referência bíblica correta e completa\n';
+        prompt += '- Relevância do versículo com o tema\n';
+        prompt += '- Respeitosidade e reverência\n';
+      } else {
+        prompt += '- Autenticidade da citação em português brasileiro\n';
+        prompt += '- Credibilidade do autor\n';
+        prompt += '- Relevância com o tema\n';
+        prompt += '- Impacto inspiracional\n';
+        prompt += '- Tradução fiel para o português (quando aplicável)\n';
+      }
       prompt += '- Cores harmoniosas e legíveis\n\n';
+      prompt += 'IMPORTANTE: TODAS AS CITAÇÕES DEVEM ESTAR EM PORTUGUÊS BRASILEIRO!\n\n';
       prompt += 'RETORNE APENAS O STATUS FORMATADO EXATAMENTE COMO NOS EXEMPLOS, NADA ALÉM DISSO.';
 
       // Chamar a API do Gemini
@@ -121,7 +178,7 @@ class GeminiService {
         text: text.trim(),
         backgroundColor,
         textColor,
-        fontSize: 18,
+        fontSize: 20,
         fontFamily: 'Inter'
       };
     } catch (error) {
@@ -131,11 +188,29 @@ class GeminiService {
       const colorPalette = this.generateColorPalette(theme);
       
       // Fallback para conteúdo padrão se a API falhar
+      const normalizedTheme = theme.toLowerCase();
+      const isBiblicalTheme = normalizedTheme.includes('bíblia') || 
+                             normalizedTheme.includes('biblia') || 
+                             normalizedTheme.includes('versículo') || 
+                             normalizedTheme.includes('versiculo') || 
+                             normalizedTheme.includes('deus') ||
+                             normalizedTheme.includes('cristo') ||
+                             normalizedTheme.includes('jesus') ||
+                             normalizedTheme.includes('fé') ||
+                             normalizedTheme.includes('salmo');
+      
+      let fallbackText;
+      if (isBiblicalTheme) {
+        fallbackText = '"Porque eu sei os planos que tenho para vocês, diz o Senhor." ✨\nJeremias 29:11';
+      } else {
+        fallbackText = '"A vida é o que acontece enquanto você está ocupado fazendo outros planos." 🌟\n(John Lennon)';
+      }
+      
       return {
-        text: '"' + theme.charAt(0).toUpperCase() + theme.slice(1) + ' é a força que transforma sonhos em realidade."\n\nbackground: ' + colorPalette.backgroundColor + '\ntext: ' + colorPalette.textColor,
+        text: fallbackText,
         backgroundColor: colorPalette.backgroundColor,
         textColor: colorPalette.textColor,
-        fontSize: 18,
+        fontSize: 20,
         fontFamily: 'Inter'
       };
     }
@@ -170,19 +245,48 @@ class GeminiService {
    * Gera uma paleta de cores harmoniosa com base em um tema
    */
   private generateColorPalette(theme: string): { backgroundColor: string; textColor: string } {
-    const getRandomColor = () => {
-      const letters = '0123456789ABCDEF';
-      let color = '#';
-      for (let i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)];
-      }
-      return color;
+    // Paletas de cores pré-definidas para temas comuns
+    const colorPalettes: Record<string, { backgroundColor: string; textColor: string }> = {
+      'motivação': { backgroundColor: '#1a535c', textColor: '#f7fff7' },
+      'amor': { backgroundColor: '#8e1e3d', textColor: '#ffebf0' },
+      'sucesso': { backgroundColor: '#d4af37', textColor: '#000000' },
+      'foco': { backgroundColor: '#2c3e50', textColor: '#ecf0f1' },
+      'gratidão': { backgroundColor: '#27ae60', textColor: '#f8f9f9' },
+      'paz': { backgroundColor: '#3498db', textColor: '#ffffff' },
+      'força': { backgroundColor: '#e74c3c', textColor: '#ffffff' },
+      'esperança': { backgroundColor: '#f39c12', textColor: '#2c3e50' },
+      'bíblia': { backgroundColor: '#1a3c6c', textColor: '#fff8e1' },
+      'biblia': { backgroundColor: '#1a3c6c', textColor: '#fff8e1' },
+      'versículo': { backgroundColor: '#4a235a', textColor: '#f9e79f' },
+      'versiculo': { backgroundColor: '#4a235a', textColor: '#f9e79f' },
+      'capítulo': { backgroundColor: '#5d4037', textColor: '#ffffff' },
+      'capitulo': { backgroundColor: '#5d4037', textColor: '#ffffff' },
+      'deus': { backgroundColor: '#1a3c6c', textColor: '#fff8e1' },
+      'cristo': { backgroundColor: '#8e1e3d', textColor: '#ffebf0' },
+      'jesus': { backgroundColor: '#8e1e3d', textColor: '#ffebf0' },
+      'fé': { backgroundColor: '#4a235a', textColor: '#f9e79f' },
+      'fe': { backgroundColor: '#4a235a', textColor: '#f9e79f' },
+      'oração': { backgroundColor: '#1a3c6c', textColor: '#fff8e1' },
+      'oracao': { backgroundColor: '#1a3c6c', textColor: '#fff8e1' },
+      'salmo': { backgroundColor: '#5d4037', textColor: '#ffffff' },
+      'salmos': { backgroundColor: '#5d4037', textColor: '#ffffff' },
+      'provérbios': { backgroundColor: '#d4af37', textColor: '#1a1a1a' },
+      'proverbios': { backgroundColor: '#d4af37', textColor: '#1a1a1a' },
+      'default': { backgroundColor: '#2c3e50', textColor: '#ecf0f1' }
     };
 
-    let backgroundColor = getRandomColor();
-    let textColor = this.getContrastingTextColor(backgroundColor);
-
-    return { backgroundColor, textColor };
+    // Normalizar o tema para encontrar a paleta correspondente
+    const normalizedTheme = theme.toLowerCase();
+    
+    // Procurar por tema exato
+    for (const [key, palette] of Object.entries(colorPalettes)) {
+      if (key !== 'default' && normalizedTheme.includes(key)) {
+        return palette;
+      }
+    }
+    
+    // Retornar paleta padrão se não encontrar correspondência
+    return colorPalettes.default;
   }
 
   private getContrastingTextColor(backgroundColor: string): string {
@@ -195,15 +299,15 @@ class GeminiService {
   }
 
   /**
-   * Gera conteúdo automático baseado no tema
+   * Busca conteúdo de citações famosas em português brasileiro baseado no tema
    */
   private async generateContentFromTheme(theme: string, includeHashtags?: boolean, includeComplementaryPhrase?: boolean): Promise<GeneratedContent> {
-    // Usar a API do Gemini diretamente em vez dos templates predefinidos
+    // Usar a API do Gemini para buscar citações famosas em vez de gerar conteúdo
     return await this.generateContentWithGemini(theme, includeHashtags, includeComplementaryPhrase);
   }
 
   /**
-   * Gera uma imagem de status usando IA baseado apenas no tema
+   * Gera uma imagem de status usando citações famosas em português brasileiro baseado no tema
    */
   async generateStatus(request: StatusRequest): Promise<StatusResponse> {
     try {

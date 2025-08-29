@@ -46,9 +46,10 @@ const ImprovedCreator = () => {
       
     } catch (error) {
       console.error('Erro ao gerar status:', error);
-      // Fallback com conteúdo básico
+      // Fallback com citação famosa
       const fallbackContent = {
-        text: `"${theme.charAt(0).toUpperCase() + theme.slice(1)} é a força que transforma sonhos em realidade." ✨
+        text: `"A imaginação é mais importante que o conhecimento." ✨
+(Albert Einstein)
 
 background: #1a1a2e
 text: #f39c12`,
