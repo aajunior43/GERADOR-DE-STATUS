@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useGeminiService } from '@/services/geminiService';
-import LivePreview from '@/components/LivePreview';
 
 export default function Home() {
   const [theme, setTheme] = useState('');
@@ -27,7 +26,6 @@ export default function Home() {
       setGeneratedContent(response.generatedContent);
     } catch (error) {
       console.error('Erro ao gerar status:', error);
-      // Fallback com citação famosa
       const fallbackContent = {
         text: `"A única forma de fazer um excelente trabalho é amar o que você faz." ✨\n(Steve Jobs)`,
         backgroundColor: '#1a1a2e',
@@ -44,29 +42,24 @@ export default function Home() {
   const downloadImage = () => {
     if (!generatedContent) return;
     
-    // Criar um elemento canvas para gerar a imagem
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     
-    // Configurar canvas
     canvas.width = 360;
     canvas.height = 640;
     
-    // Background com gradiente
     const gradient = ctx.createLinearGradient(0, 0, 0, 640);
     gradient.addColorStop(0, generatedContent.backgroundColor);
     gradient.addColorStop(1, adjustBrightness(generatedContent.backgroundColor, -20));
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 360, 640);
     
-    // Configurar texto
     ctx.fillStyle = generatedContent.textColor;
     ctx.font = `bold ${generatedContent.fontSize}px ${generatedContent.fontFamily}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
-    // Processar texto
     const lines = generatedContent.text.split('\n');
     const lineHeight = generatedContent.fontSize * 1.4;
     const startY = (640 - (lines.length * lineHeight)) / 2 + lineHeight / 2;
@@ -75,14 +68,12 @@ export default function Home() {
       ctx.fillText(line, 180, startY + (index * lineHeight));
     });
     
-    // Download
     const link = document.createElement('a');
     link.download = `status-${theme.toLowerCase().replace(/\s+/g, '-')}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
   };
 
-  // Função para ajustar brilho
   const adjustBrightness = (hex: string, percent: number): string => {
     const num = parseInt(hex.replace('#', ''), 16);
     const amt = Math.round(2.55 * percent);
@@ -95,68 +86,99 @@ export default function Home() {
       (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
   };
 
+  const quickThemes = ['Motivação', 'Amor', 'Sucesso', 'Paz', 'Fé', 'Gratidão'];
+
   return (
-    <div className="min-h-screen bg-black text-white p-4">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold text-center mb-8">Status AI</h1>
+    <div className="min-h-screen bg-black flex items-center justify-center p-6">
+      <div className="w-full max-w-sm mx-auto space-y-8">
         
-        <div className="flex flex-col md:flex-row gap-8">
-          {/* Coluna esquerda - Controles */}
-          <div className="w-full md:w-1/2">
-            <div className="mb-6">
-              <input
-                type="text"
-                placeholder="Digite seu tema aqui..."
-                value={theme}
-                onChange={(e) => setTheme(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && generateStatus()}
-                className="w-full px-4 py-3 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500"
-              />
-            </div>
-            
-            <div className="flex gap-4 mb-8">
-              <button
-                onClick={generateStatus}
-                disabled={!theme.trim() || isGenerating}
-                className="flex-1 py-3 px-6 bg-yellow-500 text-black font-bold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-yellow-400 transition-colors"
-              >
-                {isGenerating ? 'Gerando...' : 'Gerar Status'}
-              </button>
-              
-              {generatedContent && (
-                <button
-                  onClick={downloadImage}
-                  className="py-3 px-6 bg-gray-700 text-white font-bold rounded-lg hover:bg-gray-600 transition-colors"
-                >
-                  Download
-                </button>
+        {/* Header minimalista */}
+        <div className="text-center">
+          <h1 className="text-3xl font-light text-white mb-1">Status AI</h1>
+          <div className="w-12 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent mx-auto"></div>
+        </div>
+
+        {/* Preview centralizado */}
+        <div className="flex justify-center">
+          <div className="w-40 aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl">
+            <div 
+              className="w-full h-full flex items-center justify-center p-3 text-center"
+              style={{
+                background: generatedContent 
+                  ? `linear-gradient(135deg, ${generatedContent.backgroundColor} 0%, ${adjustBrightness(generatedContent.backgroundColor, -15)} 100%)`
+                  : 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+                color: generatedContent?.textColor || '#f39c12',
+                fontSize: '11px',
+                fontFamily: 'Inter, sans-serif'
+              }}
+            >
+              {isGenerating ? (
+                <div className="flex flex-col items-center space-y-2">
+                  <div className="w-4 h-4 border border-current/30 border-t-current rounded-full animate-spin"></div>
+                  <span className="text-xs opacity-70">Gerando</span>
+                </div>
+              ) : generatedContent ? (
+                <p className="font-medium leading-tight whitespace-pre-line">
+                  {generatedContent.text}
+                </p>
+              ) : (
+                <div className="opacity-50">
+                  <div className="w-6 h-6 border border-current/30 rounded-full flex items-center justify-center mx-auto mb-2">
+                    <div className="w-2 h-2 bg-current/50 rounded-full"></div>
+                  </div>
+                  <span className="text-xs">Preview</span>
+                </div>
               )}
             </div>
-            
-            {/* Categorias predefinidas */}
-            <div className="grid grid-cols-4 gap-2">
-              {['Motivação', 'Amor', 'Sucesso', 'Foco', 'Gratidão', 'Paz', 'Força', 'Esperança'].map((category) => (
-                <button
-                  key={category}
-                  onClick={() => {
-                    setTheme(category);
-                    setTimeout(() => generateStatus(), 100);
-                  }}
-                  disabled={isGenerating}
-                  className="py-2 px-3 bg-gray-800 border border-gray-600 rounded-lg text-gray-300 hover:text-white hover:border-yellow-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
-                >
-                  {category}
-                </button>
-              ))}
-            </div>
           </div>
-          
-          {/* Coluna direita - Preview */}
-          <div className="w-full md:w-1/2 flex flex-col items-center">
-            <div className="w-full max-w-xs">
-              <LivePreview theme={theme} generatedContent={generatedContent} />
-            </div>
-          </div>
+        </div>
+
+        {/* Input limpo */}
+        <div>
+          <input
+            type="text"
+            placeholder="Digite seu tema"
+            value={theme}
+            onChange={(e) => setTheme(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && generateStatus()}
+            className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-2xl text-white placeholder-white/40 focus:outline-none focus:border-white/30 transition-colors text-center"
+          />
+        </div>
+
+        {/* Botão principal */}
+        <button
+          onClick={generateStatus}
+          disabled={!theme.trim() || isGenerating}
+          className="w-full py-3 bg-white text-black font-medium rounded-2xl disabled:opacity-30 disabled:cursor-not-allowed hover:bg-white/90 transition-all"
+        >
+          {isGenerating ? 'Gerando...' : 'Gerar Status'}
+        </button>
+
+        {/* Download (só aparece quando tem conteúdo) */}
+        {generatedContent && (
+          <button
+            onClick={downloadImage}
+            className="w-full py-2 text-white/60 hover:text-white transition-colors text-sm"
+          >
+            Baixar Imagem
+          </button>
+        )}
+
+        {/* Temas rápidos minimalistas */}
+        <div className="grid grid-cols-2 gap-2 pt-4">
+          {quickThemes.map((category) => (
+            <button
+              key={category}
+              onClick={() => {
+                setTheme(category);
+                setTimeout(() => generateStatus(), 100);
+              }}
+              disabled={isGenerating}
+              className="py-2 text-white/40 hover:text-white/80 transition-colors disabled:opacity-30 text-sm"
+            >
+              {category}
+            </button>
+          ))}
         </div>
       </div>
     </div>
