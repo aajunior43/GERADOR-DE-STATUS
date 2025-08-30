@@ -13,7 +13,9 @@ export interface StatusRequest {
   fontSize?: number;
   fontFamily?: string;
   includeHashtags?: boolean;
+  includeEmojis?: boolean;
   includeComplementaryPhrase?: boolean;
+  includeVignette?: boolean;
 }
 
 export interface GeneratedContent {
@@ -125,7 +127,7 @@ class GeminiService {
   /**
    * Gera conteúdo usando 100% a IA do Gemini
    */
-  private async generateContentWithGemini(theme: string, attempt: number = 1): Promise<GeneratedContent> {
+  private async generateContentWithGemini(theme: string, includeEmojis: boolean = true, includeHashtags: boolean = false, attempt: number = 1): Promise<GeneratedContent> {
     const maxRetries = 3;
     
     for (let currentAttempt = attempt; currentAttempt <= maxRetries; currentAttempt++) {
@@ -138,6 +140,10 @@ class GeminiService {
         const usedQuotesHint = this.usedQuotes.size > 0 ? 
           `\n🚫 EVITE estas frases já usadas: ${Array.from(this.usedQuotes).slice(-5).join(', ')}` : '';
         
+        // Configurar instruções baseadas nas opções do usuário
+        const emojiInstruction = includeEmojis ? '• 1 emoji apropriado ao final da frase' : '• NÃO inclua emojis';
+        const hashtagInstruction = includeHashtags ? '• Adicione 2-3 hashtags relevantes no final' : '• NÃO inclua hashtags';
+        
         const prompt = `🎯 TEMA: "${theme}" (ID: ${randomSeed}-${timeStamp}-${currentAttempt})
 
 📋 MISSÃO: Encontre uma citação ÚNICA e INSPIRACIONAL sobre "${theme}".
@@ -148,12 +154,25 @@ class GeminiService {
 • OBRIGATÓRIO: Varie SEMPRE as citações - nunca repita
 • Explore diferentes autores, épocas e perspectivas
 • Máximo 80 caracteres na frase principal
-• 1 emoji apropriado ao final da frase
+${emojiInstruction}
+${hashtagInstruction}
 • Português brasileiro perfeito
 
 📝 FORMATO OBRIGATÓRIO:
-"[Citação única e inspiracional]" [emoji]
+${includeEmojis && includeHashtags ? 
+  `"[Citação única e inspiracional]" [emoji]
 [Autor/Referência Bíblica]
+[#hashtag1 #hashtag2 #hashtag3]` :
+  includeEmojis ? 
+    `"[Citação única e inspiracional]" [emoji]
+[Autor/Referência Bíblica]` :
+    includeHashtags ?
+      `"[Citação única e inspiracional]"
+[Autor/Referência Bíblica]
+[#hashtag1 #hashtag2 #hashtag3]` :
+      `"[Citação única e inspiracional]"
+[Autor/Referência Bíblica]`
+}
 
 background: #[6 dígitos]
 text: #[6 dígitos]
@@ -179,14 +198,40 @@ font: [Nome da Fonte]
 💡 EXEMPLOS DE VARIAÇÃO:
 
 Para "motivação" (varie entre estas abordagens):
-A) Foco em ação: "Não espere por oportunidades. Crie-as." 🚀 (George Bernard Shaw)
+${includeEmojis && includeHashtags ? 
+  `A) Foco em ação: "Não espere por oportunidades. Crie-as." 🚀 (George Bernard Shaw) #motivacao #sucesso #oportunidades
+B) Foco em persistência: "A disciplina é a ponte entre metas e conquistas." ⚡ (Jim Rohn) #disciplina #metas #conquistas
+C) Foco em potencial: "Você é mais forte do que imagina." 💪 (Anônimo) #forca #potencial #superacao` :
+  includeEmojis ? 
+    `A) Foco em ação: "Não espere por oportunidades. Crie-as." 🚀 (George Bernard Shaw)
 B) Foco em persistência: "A disciplina é a ponte entre metas e conquistas." ⚡ (Jim Rohn)  
-C) Foco em potencial: "Você é mais forte do que imagina." 💪 (Anônimo)
+C) Foco em potencial: "Você é mais forte do que imagina." � (AnônLimo)` :
+    includeHashtags ?
+      `A) Foco em ação: "Não espere por oportunidades. Crie-as." (George Bernard Shaw) #motivacao #sucesso #oportunidades
+B) Foco em persistência: "A disciplina é a ponte entre metas e conquistas." (Jim Rohn) #disciplina #metas #conquistas
+C) Foco em potencial: "Você é mais forte do que imagina." (Anônimo) #forca #potencial #superacao` :
+      `A) Foco em ação: "Não espere por oportunidades. Crie-as." (George Bernard Shaw)
+B) Foco em persistência: "A disciplina é a ponte entre metas e conquistas." (Jim Rohn)  
+C) Foco em potencial: "Você é mais forte do que imagina." (Anônimo)`
+}
 
 Para "amor":
-A) Amor universal: "Onde há amor, há vida." ❤️ (Mahatma Gandhi)
+${includeEmojis && includeHashtags ? 
+  `A) Amor universal: "Onde há amor, há vida." ❤️ (Mahatma Gandhi) #amor #vida #universal
+B) Amor romântico: "Amar é encontrar na felicidade de outro a própria." 💕 (Leibniz) #amor #relacionamento #felicidade
+C) Amor próprio: "Ame-se primeiro e todo o resto se encaixa." 💖 (Lucille Ball) #autoestima #amor #autoconhecimento` :
+  includeEmojis ? 
+    `A) Amor universal: "Onde há amor, há vida." ❤️ (Mahatma Gandhi)
 B) Amor romântico: "Amar é encontrar na felicidade de outro a própria." 💕 (Leibniz)
-C) Amor próprio: "Ame-se primeiro e todo o resto se encaixa." 💖 (Lucille Ball)
+C) Amor próprio: "Ame-se primeiro e todo o resto se encaixa." 💖 (Lucille Ball)` :
+    includeHashtags ?
+      `A) Amor universal: "Onde há amor, há vida." (Mahatma Gandhi) #amor #vida #universal
+B) Amor romântico: "Amar é encontrar na felicidade de outro a própria." (Leibniz) #amor #relacionamento #felicidade
+C) Amor próprio: "Ame-se primeiro e todo o resto se encaixa." (Lucille Ball) #autoestima #amor #autoconhecimento` :
+      `A) Amor universal: "Onde há amor, há vida." (Mahatma Gandhi)
+B) Amor romântico: "Amar é encontrar na felicidade de outro a própria." (Leibniz)
+C) Amor próprio: "Ame-se primeiro e todo o resto se encaixa." (Lucille Ball)`
+}
 
 🎲 VARIAÇÃO FORÇADA:
 Use o ID ${randomSeed}-${timeStamp}-${currentAttempt} para garantir resposta ÚNICA.
@@ -385,7 +430,11 @@ Tentativa ${currentAttempt} de ${maxRetries} - seja CRIATIVO e DIFERENTE!${usedQ
         throw new Error('Tema é obrigatório');
       }
 
-      const generatedContent = await this.generateContentWithGemini(request.theme);
+      const generatedContent = await this.generateContentWithGemini(
+        request.theme, 
+        request.includeEmojis ?? true, 
+        request.includeHashtags ?? false
+      );
 
       const fullRequest = {
         ...request,
