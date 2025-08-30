@@ -210,3 +210,74 @@ body {
 .font-lato { font-family: var(--font-lato), sans-serif; }
 .font-opensans { font-family: var(--font-opensans), sans-serif; }
 .font-crimson { font-family: var(--font-crimson), serif; }
+
+/* Otimizações para mobile */
+@media (max-width: 640px) {
+  /* Evita zoom no iOS em inputs */
+  input[type="text"], 
+  input[type="email"], 
+  input[type="password"], 
+  textarea, 
+  select {
+    font-size: 16px !important;
+  }
+  
+  /* Melhora a área de toque */
+  button, 
+  [role="button"], 
+  label {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Otimiza scrolling no mobile */
+  body {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
+  }
+  
+  /* Remove highlight azul no tap (iOS/Android) */
+  * {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Permite seleção de texto apenas onde necessário */
+  input, 
+  textarea, 
+  [contenteditable] {
+    -webkit-user-select: text;
+    -khtml-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+  }
+}
+
+/* Animações otimizadas para mobile */
+@media (prefers-reduced-motion: no-preference) {
+  .mobile-bounce {
+    animation: mobile-bounce 0.2s ease-out;
+  }
+}
+
+@keyframes mobile-bounce {
+  0% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+/* Estados de foco melhorados para mobile */
+@media (max-width: 640px) {
+  button:focus,
+  input:focus,
+  [role="button"]:focus {
+    outline: 2px solid rgba(255, 255, 255, 0.3);
+    outline-offset: 2px;
+  }
+}
