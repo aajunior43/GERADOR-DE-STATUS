@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { buildPrompt } from '@/config/prompts';
 
 // Configuração da API do Gemini
 const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
@@ -140,110 +141,17 @@ class GeminiService {
         const usedQuotesHint = this.usedQuotes.size > 0 ? 
           `\n🚫 EVITE estas frases já usadas: ${Array.from(this.usedQuotes).slice(-5).join(', ')}` : '';
         
-        // Configurar instruções baseadas nas opções do usuário
-        const emojiInstruction = includeEmojis ? '• 1 emoji apropriado ao final da frase' : '• NÃO inclua emojis';
-        const hashtagInstruction = includeHashtags ? '• Adicione 2-3 hashtags relevantes no final' : '• NÃO inclua hashtags';
-        
-        const prompt = `🎯 CATEGORIA: "${theme}" (ID: ${randomSeed}-${timeStamp}-${currentAttempt})
-
-📋 MISSÃO: Crie uma citação ÚNICA e INSPIRACIONAL sobre "${theme}".
-
-🎲 ESCOLHA CRIATIVA DA IA:
-Para a categoria "${theme}", VOCÊ DECIDE qual fonte será mais inspiradora:
-• Filme clássico ou moderno (nacional ou internacional)
-• Música/canção (qualquer artista ou banda)
-• Livro ou autor famoso (literatura mundial)
-• Personalidade histórica ou contemporânea
-• Filosofia, sabedoria popular ou provérbio
-• Versículo bíblico (se apropriado ao tema)
-• Frase original inspiradora
-
-🔍 REGRAS CRIATIVAS:
-• SEJA TOTALMENTE CRIATIVO na escolha da fonte
-• VARIE sempre entre diferentes tipos de fontes
-• NÃO se limite - explore qualquer fonte inspiradora
-• OBRIGATÓRIO: Nunca repita citações anteriores
-• Máximo 80 caracteres na frase principal
-${emojiInstruction}
-${hashtagInstruction}
-• Português brasileiro perfeito
-
-📝 FORMATO OBRIGATÓRIO:
-${includeEmojis && includeHashtags ? 
-  `"Citação única e inspiracional" emoji
-(Autor/Referência Bíblica)
-#hashtag1 #hashtag2 #hashtag3` :
-  includeEmojis ? 
-    `"Citação única e inspiracional" emoji
-(Autor/Referência Bíblica)` :
-    includeHashtags ?
-      `"Citação única e inspiracional"
-(Autor/Referência Bíblica)
-#hashtag1 #hashtag2 #hashtag3` :
-      `"Citação única e inspiracional"
-(Autor/Referência Bíblica)`
-}
-
-background: #HEXCODE
-text: #HEXCODE
-font: Nome da Fonte
-
-🎨 CORES INTELIGENTES POR CATEGORIA:
-• Motivação/Força: #e74c3c + #ffffff + Montserrat
-• Sucesso/Conquista: #27ae60 + #ffffff + Poppins  
-• Amor/Relacionamento: #8e44ad + #f8f9fa + Lato
-• Paz/Tranquilidade: #3498db + #ffffff + Inter
-• Fé/Espiritual: #2c3e50 + #ecf0f1 + Playfair Display
-• Sabedoria/Conhecimento: #8e44ad + #f8f9fa + Crimson Text
-• Felicidade/Alegria: #f39c12 + #ffffff + Poppins
-• Família/União: #e91e63 + #ffffff + Open Sans
-• Trabalho/Carreira: #607d8b + #ffffff + Inter
-• Vida/Existência: #4caf50 + #ffffff + Lato
-
-🔤 FONTES DISPONÍVEIS:
-• Elegante: Playfair Display, Crimson Text
-• Moderna: Montserrat, Poppins, Inter
-• Clássica: Open Sans, Lato
-
-💡 EXEMPLOS DE ESCOLHA CRIATIVA DA IA:
-
-Para "Motivação" - VOCÊ ESCOLHE uma dessas abordagens:
-• Filme inspirador: "Não importa quantas vezes você cai, mas quantas se levanta"
-• Música motivacional: Letra de uma canção que inspire força
-• Livro de autoajuda: Citação de autor renomado
-• Personalidade histórica: Frase de líder ou atleta famoso
-• Filosofia: Pensamento de filósofo sobre superação
-• Sabedoria popular: Provérbio ou ditado inspirador
-
-Para "Amor" - SEJA CRIATIVO na fonte:
-• Romance clássico: Frase de filme romântico icônico
-• Música romântica: Trecho lírico sobre amor
-• Poesia: Verso de poeta famoso
-• Filosofia: Pensamento sobre amor e relacionamentos
-• Literatura: Citação de romance famoso
-• Sabedoria: Reflexão sobre o amor verdadeiro
-
-🎯 SEJA TOTALMENTE LIVRE NA ESCOLHA:
-• NÃO se limite a exemplos específicos
-• EXPLORE qualquer fonte que seja inspiradora para "${theme}"
-• VARIE entre filmes, músicas, livros, pessoas, filosofias
-• SEJA CRIATIVO e SURPREENDA com escolhas únicas
-• FOQUE na mensagem inspiradora, não na fonte específica
-
-💡 EXEMPLO DE COMO ESCOLHER:
-Para "${theme}" - VOCÊ decide se vai usar:
-• Uma frase de filme que inspire sobre ${theme}
-• Uma letra de música que fale sobre ${theme}  
-• Uma citação de livro relacionada a ${theme}
-• Uma frase de pessoa famosa sobre ${theme}
-• Uma reflexão filosófica sobre ${theme}
-• Qualquer fonte que seja inspiradora para ${theme}
-
-🎲 VARIAÇÃO FORÇADA:
-Use o ID ${randomSeed}-${timeStamp}-${currentAttempt} para garantir resposta ÚNICA.
-Tentativa ${currentAttempt} de ${maxRetries} - seja CRIATIVO e DIFERENTE!${usedQuotesHint}
-
-⚠️ RETORNE APENAS o formato especificado. Nenhum texto adicional.`;
+        // Construir prompt usando arquivo de configuração
+        const prompt = buildPrompt(
+          theme,
+          includeEmojis,
+          includeHashtags,
+          randomSeed,
+          timeStamp,
+          currentAttempt,
+          maxRetries,
+          usedQuotesHint
+        );
 
         const result = await this.textModel.generateContent(prompt);
         const response = await result.response;
@@ -420,6 +328,11 @@ Tentativa ${currentAttempt} de ${maxRetries} - seja CRIATIVO e DIFERENTE!${usedQ
       'vida': { backgroundColor: '#4caf50', textColor: '#ffffff' },
       'fé': { backgroundColor: '#2c3e50', textColor: '#ecf0f1' },
       'fe': { backgroundColor: '#2c3e50', textColor: '#ecf0f1' },
+      'filme': { backgroundColor: '#1a1a2e', textColor: '#f39c12' },
+      'séries': { backgroundColor: '#16213e', textColor: '#e74c3c' },
+      'series': { backgroundColor: '#16213e', textColor: '#e74c3c' },
+      'música': { backgroundColor: '#2d1b69', textColor: '#f1c40f' },
+      'musica': { backgroundColor: '#2d1b69', textColor: '#f1c40f' },
       'default': { backgroundColor: '#2c3e50', textColor: '#ecf0f1' }
     };
 
