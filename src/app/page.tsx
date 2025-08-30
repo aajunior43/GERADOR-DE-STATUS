@@ -89,7 +89,11 @@ export default function Home() {
       (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
   };
 
-  const quickThemes = ['Motivação', 'Amor', 'Sucesso', 'Paz', 'Fé', 'Gratidão'];
+  const quickThemes = [
+    'Motivação', 'Amor', 'Sucesso', 'Paz', 'Fé', 'Gratidão',
+    'Força', 'Foco', 'Esperança', 'Sabedoria', 'Coragem', 'Felicidade',
+    'Sonhos', 'Persistência', 'Família', 'Amizade', 'Trabalho', 'Vida'
+  ];
 
   // Função para mapear nomes de fontes para classes CSS
   const getFontClass = (fontName: string): string => {
@@ -206,7 +210,7 @@ export default function Home() {
         </button>
 
         {/* Temas rápidos minimalistas */}
-        <div className="grid grid-cols-2 gap-2 pt-4">
+        <div className="grid grid-cols-3 gap-1 pt-4">
           {quickThemes.map((category) => (
             <button
               key={category}
@@ -215,7 +219,7 @@ export default function Home() {
                 setTimeout(() => generateStatus(), 100);
               }}
               disabled={isGenerating}
-              className="py-2 text-white/40 hover:text-white/80 transition-colors disabled:opacity-30 text-sm"
+              className="py-1.5 px-2 text-white/40 hover:text-white/80 transition-colors disabled:opacity-30 text-xs rounded-lg hover:bg-white/5"
             >
               {category}
             </button>
