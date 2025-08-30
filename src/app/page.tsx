@@ -1071,7 +1071,7 @@ export default function Home() {
               } catch {
                 return 0;
               }
-            })())
+            })()})
           </button>
         </section>
       </div>
