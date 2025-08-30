@@ -160,23 +160,23 @@ ${hashtagInstruction}
 
 📝 FORMATO OBRIGATÓRIO:
 ${includeEmojis && includeHashtags ? 
-  `"[Citação única e inspiracional]" [emoji]
-[Autor/Referência Bíblica]
-[#hashtag1 #hashtag2 #hashtag3]` :
+  `"Citação única e inspiracional" emoji
+(Autor/Referência Bíblica)
+#hashtag1 #hashtag2 #hashtag3` :
   includeEmojis ? 
-    `"[Citação única e inspiracional]" [emoji]
-[Autor/Referência Bíblica]` :
+    `"Citação única e inspiracional" emoji
+(Autor/Referência Bíblica)` :
     includeHashtags ?
-      `"[Citação única e inspiracional]"
-[Autor/Referência Bíblica]
-[#hashtag1 #hashtag2 #hashtag3]` :
-      `"[Citação única e inspiracional]"
-[Autor/Referência Bíblica]`
+      `"Citação única e inspiracional"
+(Autor/Referência Bíblica)
+#hashtag1 #hashtag2 #hashtag3` :
+      `"Citação única e inspiracional"
+(Autor/Referência Bíblica)`
 }
 
-background: #[6 dígitos]
-text: #[6 dígitos]
-font: [Nome da Fonte]
+background: #HEXCODE
+text: #HEXCODE
+font: Nome da Fonte
 
 🎨 CORES INTELIGENTES POR TEMA:
 • Motivação/Força: #e74c3c + #ffffff + Montserrat
@@ -294,6 +294,7 @@ Tentativa ${currentAttempt} de ${maxRetries} - seja CRIATIVO e DIFERENTE!${usedQ
     // Limpar texto
     text = text
       .replace(/^["']|["']$/g, '')
+      .replace(/\[|\]/g, '') // Remove colchetes
       .replace(/\s+/g, ' ')
       .trim();
 
@@ -353,7 +354,15 @@ Tentativa ${currentAttempt} de ${maxRetries} - seja CRIATIVO e DIFERENTE!${usedQ
       } else if (fontMatch) {
         fontFamily = fontMatch[1].trim();
       } else if (!line.includes('background:') && !line.includes('text:') && !line.includes('font:')) {
-        extractedText += line + '\n';
+        // Limpar colchetes e outros caracteres indesejados
+        const cleanLine = line
+          .replace(/\[|\]/g, '') // Remove colchetes
+          .replace(/^["']|["']$/g, '') // Remove aspas do início/fim
+          .trim();
+        
+        if (cleanLine) {
+          extractedText += cleanLine + '\n';
+        }
       }
     });
 
