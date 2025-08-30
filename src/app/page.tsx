@@ -424,8 +424,320 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-black">
-      {/* Container principal com scroll suave */}
-      <div className="max-w-sm mx-auto px-6 py-8 space-y-8">
+      {/* Container principal responsivo */}
+      <div className="max-w-sm mx-auto px-4 py-6 space-y-6 md:max-w-4xl md:px-8 md:py-12">
+        
+        {/* Layout Desktop - Grid com 2 colunas */}
+        <div className="hidden md:grid md:grid-cols-2 md:gap-12 md:items-start">
+          
+          {/* Coluna Esquerda - Controles */}
+          <div className="space-y-8">
+            {/* Header elegante */}
+            <header className="text-center space-y-4">
+              <h1 className="text-4xl font-light text-white tracking-wide">Status AI</h1>
+              <div className="w-20 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent mx-auto"></div>
+              <p className="text-white/50 text-base">Crie status únicos com IA</p>
+            </header>
+
+            {/* Input de tema */}
+            <section className="space-y-4">
+              <label className="block text-white/70 text-base font-medium text-center">
+                Qual o tema do seu status?
+              </label>
+              <input
+                type="text"
+                placeholder="Ex: motivação, amor, sucesso..."
+                value={theme}
+                onChange={(e) => setTheme(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && generateStatus()}
+                className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-3xl text-white placeholder-white/40 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all text-center text-lg"
+                style={{ fontSize: '16px' }}
+              />
+            </section>
+
+            {/* Opções de personalização */}
+            <section className="space-y-6">
+              <h3 className="text-white/70 text-base font-medium text-center">Personalizar</h3>
+              <div className="flex justify-center gap-12">
+                <label className="flex flex-col items-center gap-4 cursor-pointer group">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={includeEmojis}
+                      onChange={(e) => setIncludeEmojis(e.target.checked)}
+                      className="sr-only"
+                    />
+                    <div className={`w-10 h-10 rounded-xl border-2 transition-all duration-200 active:scale-90 ${
+                      includeEmojis 
+                        ? 'bg-white border-white shadow-lg' 
+                        : 'bg-transparent border-white/30 group-hover:border-white/50'
+                    }`}>
+                      {includeEmojis && (
+                        <svg className="w-5 h-5 text-black absolute top-2.5 left-2.5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl mb-2">🎭</div>
+                    <span className="text-sm text-white/70 group-hover:text-white/90 transition-colors">Emojis</span>
+                  </div>
+                </label>
+                
+                <label className="flex flex-col items-center gap-4 cursor-pointer group">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={includeHashtags}
+                      onChange={(e) => setIncludeHashtags(e.target.checked)}
+                      className="sr-only"
+                    />
+                    <div className={`w-10 h-10 rounded-xl border-2 transition-all duration-200 active:scale-90 ${
+                      includeHashtags 
+                        ? 'bg-white border-white shadow-lg' 
+                        : 'bg-transparent border-white/30 group-hover:border-white/50'
+                    }`}>
+                      {includeHashtags && (
+                        <svg className="w-5 h-5 text-black absolute top-2.5 left-2.5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl mb-2">#️⃣</div>
+                    <span className="text-sm text-white/70 group-hover:text-white/90 transition-colors">Hashtags</span>
+                  </div>
+                </label>
+
+                <label className="flex flex-col items-center gap-4 cursor-pointer group">
+                  <div className="relative">
+                    <input
+                      type="checkbox"
+                      checked={includeVignette}
+                      onChange={(e) => setIncludeVignette(e.target.checked)}
+                      className="sr-only"
+                    />
+                    <div className={`w-10 h-10 rounded-xl border-2 transition-all duration-200 active:scale-90 ${
+                      includeVignette 
+                        ? 'bg-white border-white shadow-lg' 
+                        : 'bg-transparent border-white/30 group-hover:border-white/50'
+                    }`}>
+                      {includeVignette && (
+                        <svg className="w-5 h-5 text-black absolute top-2.5 left-2.5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-xl mb-2">🌑</div>
+                    <span className="text-sm text-white/70 group-hover:text-white/90 transition-colors">Vinheta</span>
+                  </div>
+                </label>
+              </div>
+            </section>
+
+            {/* Botão principal */}
+            <section>
+              <button
+                onClick={generateStatus}
+                disabled={!theme.trim() || isGenerating}
+                className="w-full py-5 bg-white text-black font-semibold rounded-3xl disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all text-lg shadow-lg"
+              >
+                {isGenerating ? 'Criando com IA...' : 'Gerar Status'}
+              </button>
+            </section>
+
+            {/* Botão de download (quando há conteúdo) */}
+            {generatedContent && (
+              <section>
+                <button
+                  onClick={downloadImage}
+                  className="w-full py-4 text-white/80 hover:text-white transition-colors text-base border border-white/20 rounded-3xl active:scale-95 bg-white/5 backdrop-blur-sm"
+                >
+                  📱 Baixar Imagem
+                </button>
+                <p className="text-sm text-white/40 text-center mt-3">
+                  Fonte: {generatedContent.fontFamily}
+                </p>
+              </section>
+            )}
+          </div>
+
+          {/* Coluna Direita - Preview e Navegação */}
+          <div className="space-y-8">
+            {/* Preview centralizado */}
+            <section className="flex justify-center">
+              <div className="relative group">
+                <div 
+                  className="w-64 aspect-[9/16] rounded-3xl overflow-hidden shadow-2xl border border-white/10 active:scale-95 transition-all duration-300 cursor-pointer"
+                  onClick={() => generatedContent && downloadImage()}
+                >
+                  <div 
+                    className={`w-full h-full flex items-center justify-center p-6 text-center relative ${generatedContent ? getFontClass(generatedContent.fontFamily) : 'font-inter'}`}
+                    style={{
+                      background: generatedContent 
+                        ? `linear-gradient(135deg, ${generatedContent.backgroundColor} 0%, ${adjustBrightness(generatedContent.backgroundColor, -15)} 100%)`
+                        : 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
+                      color: generatedContent?.textColor || '#f39c12',
+                      fontSize: '15px'
+                    }}
+                  >
+                    {/* Vinheta preta no preview */}
+                    {includeVignette && (
+                      <div 
+                        className="absolute inset-0 pointer-events-none"
+                        style={{
+                          background: 'radial-gradient(circle at center, rgba(0,0,0,0) 0%, rgba(0,0,0,0.1) 70%, rgba(0,0,0,0.6) 100%)'
+                        }}
+                      />
+                    )}
+                    {isGenerating ? (
+                      <div className="flex flex-col items-center space-y-4">
+                        <div className="relative">
+                          <div className="w-10 h-10 border-2 border-current/20 rounded-full"></div>
+                          <div className="absolute top-0 left-0 w-10 h-10 border-2 border-transparent border-t-current rounded-full animate-spin"></div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-base opacity-80 mb-2">Criando com IA</div>
+                          <div className="flex justify-center gap-1">
+                            <div className="w-2 h-2 bg-current/60 rounded-full animate-pulse"></div>
+                            <div className="w-2 h-2 bg-current/60 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                            <div className="w-2 h-2 bg-current/60 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : generatedContent ? (
+                      <p className="font-medium leading-relaxed whitespace-pre-line">
+                        {generatedContent.text}
+                      </p>
+                    ) : (
+                      <div className="opacity-60 text-center">
+                        <div className="w-12 h-12 border-2 border-current/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <div className="w-5 h-5 bg-current/50 rounded-full"></div>
+                        </div>
+                        <div className="text-base">Preview</div>
+                        <div className="text-sm opacity-70 mt-2">Toque para baixar</div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Indicador de download */}
+                {generatedContent && (
+                  <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-sm text-white/70">
+                    Toque para baixar
+                  </div>
+                )}
+              </div>
+            </section>
+
+            {/* Navegação de temas */}
+            <section className="space-y-6">
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={() => {
+                    const prevIndex = currentThemeIndex === 0 ? quickThemes.length - 1 : currentThemeIndex - 1;
+                    const prevTheme = quickThemes[prevIndex];
+                    console.log(`⬅️ Navegação anterior: ${prevTheme} (índice ${prevIndex})`);
+                    setCurrentThemeIndex(prevIndex);
+                    setTheme(prevTheme);
+                  }}
+                  disabled={isGenerating}
+                  className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 active:scale-90 transition-all disabled:opacity-30 text-lg"
+                >
+                  ←
+                </button>
+                
+                <div className="flex-1 text-center mx-6">
+                  <div className="text-white/90 text-lg font-medium mb-3">
+                    {quickThemes[currentThemeIndex]}
+                  </div>
+                  <div className="flex justify-center gap-2">
+                    {quickThemes.map((_, index) => (
+                      <div
+                        key={index}
+                        className={`w-2.5 h-2.5 rounded-full transition-all ${
+                          index === currentThemeIndex ? 'bg-white/90 scale-110' : 'bg-white/30'
+                        }`}
+                      />
+                    ))}
+                  </div>
+                </div>
+                
+                <button
+                  onClick={() => {
+                    const nextIndex = (currentThemeIndex + 1) % quickThemes.length;
+                    const nextTheme = quickThemes[nextIndex];
+                    console.log(`➡️ Navegação próxima: ${nextTheme} (índice ${nextIndex})`);
+                    setCurrentThemeIndex(nextIndex);
+                    setTheme(nextTheme);
+                  }}
+                  disabled={isGenerating}
+                  className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 active:scale-90 transition-all disabled:opacity-30 text-lg"
+                >
+                  →
+                </button>
+              </div>
+              
+              {/* Grid de temas */}
+              <div className="grid grid-cols-3 gap-4">
+                {quickThemes.map((category, index) => (
+                  <button
+                    key={category}
+                    onClick={() => {
+                      console.log(`🎯 Clicou em: ${category} (índice ${index})`);
+                      setCurrentThemeIndex(index);
+                      setTheme(category);
+                      console.log(`✅ Definido: tema="${category}", índice=${index}`);
+                      setTimeout(() => generateStatus(), 100);
+                    }}
+                    disabled={isGenerating}
+                    className={`py-4 px-5 transition-all disabled:opacity-30 text-sm rounded-2xl active:scale-95 ${
+                      index === currentThemeIndex
+                        ? 'bg-white/15 text-white border border-white/30 shadow-lg'
+                        : 'text-white/60 hover:text-white/90 hover:bg-white/5 border border-white/10'
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
+            </section>
+
+            {/* Dicas de uso */}
+            <section className="text-center space-y-3 pt-6 border-t border-white/10">
+              <div className="text-sm text-white/40">
+                Dicas: Deslize ← → para trocar temas • Deslize ↑ para baixar
+              </div>
+              
+              {/* Debug info (menor e mais discreto) */}
+              <button
+                onClick={() => {
+                  const geminiService = useGeminiService();
+                  geminiService.clearQuoteHistory();
+                  const stats = geminiService.getHistoryStats();
+                  alert(`Histórico limpo! ${stats.total}/${stats.maxSize} frases`);
+                }}
+                className="text-xs text-white/20 hover:text-white/40 transition-colors"
+              >
+                Limpar Histórico ({(() => {
+                  try {
+                    const geminiService = useGeminiService();
+                    return geminiService.getHistoryStats().total;
+                  } catch {
+                    return 0;
+                  }
+                })()})
+              </button>
+            </section>
+          </div>
+        </div>
+
+        {/* Layout Mobile - Coluna única (original) */}
+        <div className="md:hidden space-y-6">
 
         {/* Header elegante */}
         <header className="text-center space-y-3">
