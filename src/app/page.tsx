@@ -5,7 +5,6 @@ import { useGeminiService } from '@/services/geminiService';
 import { useSwipe } from '@/hooks/useSwipe';
 import { hapticFeedback } from '@/utils/haptics';
 import { useToast } from '@/components/Toast';
-import PromptEditor from '@/components/PromptEditor';
 
 export default function Home() {
   const [theme, setTheme] = useState('');
@@ -15,7 +14,6 @@ export default function Home() {
   const [includeHashtags, setIncludeHashtags] = useState(false);
   const [includeVignette, setIncludeVignette] = useState(false);
   const [currentThemeIndex, setCurrentThemeIndex] = useState(0);
-  const [showPromptEditor, setShowPromptEditor] = useState(false);
 
   const { showToast, ToastContainer } = useToast();
 
@@ -702,45 +700,30 @@ export default function Home() {
             Dicas: Deslize ← → para trocar temas • Deslize ↑ para baixar
           </div>
 
-          {/* Botões de configuração */}
-          <div className="flex justify-center gap-4">
-            <button
-              onClick={() => setShowPromptEditor(true)}
-              className="text-xs text-white/30 hover:text-white/60 transition-colors"
-            >
-              ⚙️ Editar Prompts
-            </button>
-            
-            <button
-              onClick={() => {
+          {/* Debug info (menor e mais discreto) */}
+          <button
+            onClick={() => {
+              const geminiService = useGeminiService();
+              geminiService.clearQuoteHistory();
+              const stats = geminiService.getHistoryStats();
+              alert(`Histórico limpo! ${stats.total}/${stats.maxSize} frases`);
+            }}
+            className="text-xs text-white/20 hover:text-white/40 transition-colors"
+          >
+            Limpar Histórico ({(() => {
+              try {
                 const geminiService = useGeminiService();
-                geminiService.clearQuoteHistory();
-                const stats = geminiService.getHistoryStats();
-                alert(`Histórico limpo! ${stats.total}/${stats.maxSize} frases`);
-              }}
-              className="text-xs text-white/20 hover:text-white/40 transition-colors"
-            >
-              🗑️ Limpar Histórico ({(() => {
-                try {
-                  const geminiService = useGeminiService();
-                  return geminiService.getHistoryStats().total;
-                } catch {
-                  return 0;
-                }
-              })()})
-            </button>
-          </div>
+                return geminiService.getHistoryStats().total;
+              } catch {
+                return 0;
+              }
+            })()})
+          </button>
         </section>
       </div>
 
       {/* Container de toasts */}
       <ToastContainer />
-      
-      {/* Editor de Prompts */}
-      <PromptEditor 
-        isOpen={showPromptEditor} 
-        onClose={() => setShowPromptEditor(false)} 
-      />
     </div>
   );
 }

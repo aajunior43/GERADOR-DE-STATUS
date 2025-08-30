@@ -2,16 +2,12 @@
 
 ## 🎯 **Visão Geral**
 
-O sistema de prompts foi modularizado para facilitar a personalização. Agora você pode editar os prompts de duas formas:
+O sistema de prompts foi modularizado para facilitar a personalização. Você pode editar os prompts diretamente nos arquivos do projeto:
 
-### 1. **Via Interface (Recomendado para testes)**
-- Clique no botão "⚙️ Editar Prompts" na parte inferior da aplicação
-- Edite diretamente na interface web
-- Salva no localStorage (temporário)
-
-### 2. **Via Arquivos (Recomendado para mudanças permanentes)**
+### **Via Arquivos (Única forma)**
 - Edite os arquivos em `src/config/`
 - Mudanças são permanentes no código
+- Recarregamento automático da aplicação
 
 ## 📁 **Estrutura de Arquivos**
 
@@ -131,35 +127,7 @@ basePrompt: `✨ CATEGORIA: "{theme}" - SEJA POÉTICO!
 • Português brasileiro POÉTICO`
 ```
 
-## 🚀 **Funcionalidades Avançadas**
-
-### **Prompts Condicionais**
-Você pode criar lógica condicional no `buildPrompt()`:
-
-```typescript
-// Exemplo: Prompts diferentes por horário
-const hour = new Date().getHours();
-let timeInstruction = '';
-
-if (hour < 12) {
-  timeInstruction = '• Crie algo ENERGIZANTE para começar o dia';
-} else if (hour < 18) {
-  timeInstruction = '• Gere algo MOTIVADOR para o meio do dia';
-} else {
-  timeInstruction = '• Desenvolva algo REFLEXIVO para a noite';
-}
-```
-
-### **Variações por Usuário**
-```typescript
-// Salvar preferências do usuário
-const userPrefs = localStorage.getItem('user_prompt_style');
-const styleInstruction = userPrefs === 'formal' ? 
-  '• Use linguagem formal e elegante' : 
-  '• Use linguagem casual e descontraída';
-```
-
-## 📊 **Testando Mudanças**
+## �  **Testando Mudanças**
 
 1. **Faça uma mudança pequena primeiro**
 2. **Teste com um tema específico**
@@ -167,11 +135,6 @@ const styleInstruction = userPrefs === 'formal' ?
 4. **Ajuste conforme necessário**
 
 ## 🔄 **Aplicar Mudanças**
-
-### **Via Interface:**
-1. Edite no editor web
-2. Clique "Salvar"
-3. Reinicie a aplicação
 
 ### **Via Arquivos:**
 1. Edite `src/config/prompts.ts`
