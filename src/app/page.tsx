@@ -432,34 +432,42 @@ export default function Home() {
           
           {/* Coluna Esquerda - Controles */}
           <div className="space-y-8">
-            {/* Header elegante */}
+            {/* Header elegante com animação */}
             <header className="text-center space-y-4">
-              <h1 className="text-4xl font-light text-white tracking-wide">Status AI</h1>
-              <div className="w-20 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent mx-auto"></div>
-              <p className="text-white/50 text-base">Crie status únicos com IA</p>
+              <div className="relative">
+                <h1 className="text-5xl font-light text-white tracking-wide bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent animate-pulse">
+                  Status AI
+                </h1>
+                <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg blur opacity-20 group-hover:opacity-100 transition duration-1000 group-hover:duration-200 animate-tilt"></div>
+              </div>
+              <div className="w-24 h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent mx-auto shadow-lg"></div>
+              <p className="text-white/70 text-lg font-medium">Crie status únicos com IA ✨</p>
             </header>
 
-            {/* Input de tema */}
+            {/* Input de tema melhorado */}
             <section className="space-y-4">
-              <label className="block text-white/70 text-base font-medium text-center">
-                Qual o tema do seu status?
+              <label className="block text-white/80 text-lg font-semibold text-center bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                ✨ Qual o tema do seu status?
               </label>
-              <input
-                type="text"
-                placeholder="Ex: motivação, amor, sucesso..."
-                value={theme}
-                onChange={(e) => setTheme(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && generateStatus()}
-                className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-3xl text-white placeholder-white/40 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all text-center text-lg"
-                style={{ fontSize: '16px' }}
-              />
+              <div className="relative group">
+                <input
+                  type="text"
+                  placeholder="Ex: motivação, amor, sucesso..."
+                  value={theme}
+                  onChange={(e) => setTheme(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && generateStatus()}
+                  className="w-full px-8 py-5 bg-gradient-to-r from-white/5 to-white/10 border-2 border-white/20 rounded-3xl text-white placeholder-white/50 focus:outline-none focus:border-blue-400/50 focus:bg-white/15 transition-all text-center text-lg shadow-2xl backdrop-blur-sm hover:shadow-blue-500/10 focus:shadow-blue-500/20"
+                  style={{ fontSize: '16px' }}
+                />
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-600/10 to-purple-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+              </div>
             </section>
 
-            {/* Opções de personalização */}
+            {/* Opções de personalização melhoradas */}
             <section className="space-y-6">
-              <h3 className="text-white/70 text-base font-medium text-center">Personalizar</h3>
+              <h3 className="text-white/80 text-lg font-semibold text-center bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">🎨 Personalizar</h3>
               <div className="flex justify-center gap-12">
-                <label className="flex flex-col items-center gap-4 cursor-pointer group">
+                <label className="flex flex-col items-center gap-4 cursor-pointer group transform hover:scale-105 transition-transform">
                   <div className="relative">
                     <input
                       type="checkbox"
@@ -467,25 +475,25 @@ export default function Home() {
                       onChange={(e) => setIncludeEmojis(e.target.checked)}
                       className="sr-only"
                     />
-                    <div className={`w-10 h-10 rounded-xl border-2 transition-all duration-200 active:scale-90 ${
+                    <div className={`w-12 h-12 rounded-2xl border-2 transition-all duration-300 active:scale-90 shadow-lg ${
                       includeEmojis 
-                        ? 'bg-white border-white shadow-lg' 
-                        : 'bg-transparent border-white/30 group-hover:border-white/50'
+                        ? 'bg-gradient-to-br from-yellow-400 to-orange-500 border-yellow-300 shadow-yellow-400/30' 
+                        : 'bg-white/5 border-white/30 group-hover:border-yellow-400/50 backdrop-blur-sm'
                     }`}>
                       {includeEmojis && (
-                        <svg className="w-5 h-5 text-black absolute top-2.5 left-2.5" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-6 h-6 text-white absolute top-3 left-3" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       )}
                     </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl mb-2">🎭</div>
-                    <span className="text-sm text-white/70 group-hover:text-white/90 transition-colors">Emojis</span>
+                    <div className="text-2xl mb-2">🎭</div>
+                    <span className="text-sm text-white/80 group-hover:text-white font-medium transition-colors">Emojis</span>
                   </div>
                 </label>
                 
-                <label className="flex flex-col items-center gap-4 cursor-pointer group">
+                <label className="flex flex-col items-center gap-4 cursor-pointer group transform hover:scale-105 transition-transform">
                   <div className="relative">
                     <input
                       type="checkbox"
@@ -493,25 +501,25 @@ export default function Home() {
                       onChange={(e) => setIncludeHashtags(e.target.checked)}
                       className="sr-only"
                     />
-                    <div className={`w-10 h-10 rounded-xl border-2 transition-all duration-200 active:scale-90 ${
+                    <div className={`w-12 h-12 rounded-2xl border-2 transition-all duration-300 active:scale-90 shadow-lg ${
                       includeHashtags 
-                        ? 'bg-white border-white shadow-lg' 
-                        : 'bg-transparent border-white/30 group-hover:border-white/50'
+                        ? 'bg-gradient-to-br from-blue-400 to-purple-500 border-blue-300 shadow-blue-400/30' 
+                        : 'bg-white/5 border-white/30 group-hover:border-blue-400/50 backdrop-blur-sm'
                     }`}>
                       {includeHashtags && (
-                        <svg className="w-5 h-5 text-black absolute top-2.5 left-2.5" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-6 h-6 text-white absolute top-3 left-3" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       )}
                     </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl mb-2">#️⃣</div>
-                    <span className="text-sm text-white/70 group-hover:text-white/90 transition-colors">Hashtags</span>
+                    <div className="text-2xl mb-2">#️⃣</div>
+                    <span className="text-sm text-white/80 group-hover:text-white font-medium transition-colors">Hashtags</span>
                   </div>
                 </label>
 
-                <label className="flex flex-col items-center gap-4 cursor-pointer group">
+                <label className="flex flex-col items-center gap-4 cursor-pointer group transform hover:scale-105 transition-transform">
                   <div className="relative">
                     <input
                       type="checkbox"
@@ -519,49 +527,61 @@ export default function Home() {
                       onChange={(e) => setIncludeVignette(e.target.checked)}
                       className="sr-only"
                     />
-                    <div className={`w-10 h-10 rounded-xl border-2 transition-all duration-200 active:scale-90 ${
+                    <div className={`w-12 h-12 rounded-2xl border-2 transition-all duration-300 active:scale-90 shadow-lg ${
                       includeVignette 
-                        ? 'bg-white border-white shadow-lg' 
-                        : 'bg-transparent border-white/30 group-hover:border-white/50'
+                        ? 'bg-gradient-to-br from-gray-600 to-gray-800 border-gray-400 shadow-gray-400/30' 
+                        : 'bg-white/5 border-white/30 group-hover:border-gray-400/50 backdrop-blur-sm'
                     }`}>
                       {includeVignette && (
-                        <svg className="w-5 h-5 text-black absolute top-2.5 left-2.5" fill="currentColor" viewBox="0 0 20 20">
+                        <svg className="w-6 h-6 text-white absolute top-3 left-3" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
                       )}
                     </div>
                   </div>
                   <div className="text-center">
-                    <div className="text-xl mb-2">🌑</div>
-                    <span className="text-sm text-white/70 group-hover:text-white/90 transition-colors">Vinheta</span>
+                    <div className="text-2xl mb-2">🌑</div>
+                    <span className="text-sm text-white/80 group-hover:text-white font-medium transition-colors">Vinheta</span>
                   </div>
                 </label>
               </div>
             </section>
 
-            {/* Botão principal */}
+            {/* Botão principal melhorado */}
             <section>
               <button
                 onClick={generateStatus}
                 disabled={!theme.trim() || isGenerating}
-                className="w-full py-5 bg-white text-black font-semibold rounded-3xl disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all text-lg shadow-lg"
+                className="relative w-full py-6 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-3xl disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all text-xl shadow-2xl hover:shadow-blue-500/30 overflow-hidden group"
               >
-                {isGenerating ? 'Criando com IA...' : 'Gerar Status'}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                <div className="relative flex items-center justify-center gap-3">
+                  {isGenerating && (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  )}
+                  <span>{isGenerating ? '🤖 Criando com IA...' : '✨ Gerar Status'}</span>
+                </div>
               </button>
             </section>
 
-            {/* Botão de download (quando há conteúdo) */}
+            {/* Botão de download melhorado */}
             {generatedContent && (
               <section>
                 <button
                   onClick={downloadImage}
-                  className="w-full py-4 text-white/80 hover:text-white transition-colors text-base border border-white/20 rounded-3xl active:scale-95 bg-white/5 backdrop-blur-sm"
+                  className="relative w-full py-5 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold rounded-3xl active:scale-95 transition-all text-lg shadow-xl hover:shadow-green-500/30 overflow-hidden group"
                 >
-                  📱 Baixar Imagem
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                  <div className="relative flex items-center justify-center gap-2">
+                    <span className="text-xl">📱</span>
+                    <span>Baixar Imagem</span>
+                  </div>
                 </button>
-                <p className="text-sm text-white/40 text-center mt-3">
-                  Fonte: {generatedContent.fontFamily}
-                </p>
+                <div className="mt-4 p-3 bg-white/5 rounded-2xl backdrop-blur-sm">
+                  <p className="text-sm text-white/70 text-center">
+                    <span className="font-medium">Fonte:</span> {generatedContent.fontFamily}
+                  </p>
+                </div>
               </section>
             )}
           </div>
@@ -739,11 +759,15 @@ export default function Home() {
         {/* Layout Mobile - Coluna única (original) */}
         <div className="md:hidden space-y-6">
 
-        {/* Header elegante */}
+        {/* Header elegante mobile */}
         <header className="text-center space-y-3">
-          <h1 className="text-3xl font-light text-white tracking-wide">Status AI</h1>
-          <div className="w-16 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent mx-auto"></div>
-          <p className="text-white/50 text-sm">Crie status únicos com IA</p>
+          <div className="relative">
+            <h1 className="text-4xl font-light text-white tracking-wide bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent animate-pulse">
+              Status AI
+            </h1>
+          </div>
+          <div className="w-20 h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent mx-auto shadow-lg"></div>
+          <p className="text-white/70 text-base font-medium">Crie status únicos com IA ✨</p>
         </header>
 
         {/* Preview centralizado e destacado */}
@@ -812,27 +836,30 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Input de tema */}
+        {/* Input de tema mobile melhorado */}
         <section className="space-y-3">
-          <label className="block text-white/70 text-sm font-medium text-center">
-            Qual o tema do seu status?
+          <label className="block text-white/80 text-base font-semibold text-center bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+            ✨ Qual o tema do seu status?
           </label>
-          <input
-            type="text"
-            placeholder="Ex: motivação, amor, sucesso..."
-            value={theme}
-            onChange={(e) => setTheme(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && generateStatus()}
-            className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-3xl text-white placeholder-white/40 focus:outline-none focus:border-white/30 focus:bg-white/10 transition-all text-center text-lg"
-            style={{ fontSize: '16px' }}
-          />
+          <div className="relative group">
+            <input
+              type="text"
+              placeholder="Ex: motivação, amor, sucesso..."
+              value={theme}
+              onChange={(e) => setTheme(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && generateStatus()}
+              className="w-full px-6 py-4 bg-gradient-to-r from-white/5 to-white/10 border-2 border-white/20 rounded-3xl text-white placeholder-white/50 focus:outline-none focus:border-blue-400/50 focus:bg-white/15 transition-all text-center text-lg shadow-2xl backdrop-blur-sm hover:shadow-blue-500/10 focus:shadow-blue-500/20"
+              style={{ fontSize: '16px' }}
+            />
+            <div className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-600/10 to-purple-600/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+          </div>
         </section>
 
-        {/* Opções de personalização */}
+        {/* Opções de personalização mobile melhoradas */}
         <section className="space-y-4">
-          <h3 className="text-white/70 text-sm font-medium text-center">Personalizar</h3>
+          <h3 className="text-white/80 text-base font-semibold text-center bg-gradient-to-r from-green-400 to-blue-400 bg-clip-text text-transparent">🎨 Personalizar</h3>
           <div className="flex justify-center gap-8">
-            <label className="flex flex-col items-center gap-3 cursor-pointer group">
+            <label className="flex flex-col items-center gap-3 cursor-pointer group transform hover:scale-105 transition-transform">
               <div className="relative">
                 <input
                   type="checkbox"
@@ -840,24 +867,25 @@ export default function Home() {
                   onChange={(e) => setIncludeEmojis(e.target.checked)}
                   className="sr-only"
                 />
-                <div className={`w-8 h-8 rounded-xl border-2 transition-all duration-200 active:scale-90 ${includeEmojis
-                  ? 'bg-white border-white shadow-lg'
-                  : 'bg-transparent border-white/30 group-hover:border-white/50'
-                  }`}>
+                <div className={`w-10 h-10 rounded-2xl border-2 transition-all duration-300 active:scale-90 shadow-lg ${
+                  includeEmojis
+                    ? 'bg-gradient-to-br from-yellow-400 to-orange-500 border-yellow-300 shadow-yellow-400/30'
+                    : 'bg-white/5 border-white/30 group-hover:border-yellow-400/50 backdrop-blur-sm'
+                }`}>
                   {includeEmojis && (
-                    <svg className="w-4 h-4 text-black absolute top-1 left-1" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5 text-white absolute top-2.5 left-2.5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   )}
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-lg mb-1">🎭</div>
-                <span className="text-xs text-white/70 group-hover:text-white/90 transition-colors">Emojis</span>
+                <div className="text-xl mb-1">🎭</div>
+                <span className="text-xs text-white/80 group-hover:text-white font-medium transition-colors">Emojis</span>
               </div>
             </label>
 
-            <label className="flex flex-col items-center gap-3 cursor-pointer group">
+            <label className="flex flex-col items-center gap-3 cursor-pointer group transform hover:scale-105 transition-transform">
               <div className="relative">
                 <input
                   type="checkbox"
@@ -865,24 +893,25 @@ export default function Home() {
                   onChange={(e) => setIncludeHashtags(e.target.checked)}
                   className="sr-only"
                 />
-                <div className={`w-8 h-8 rounded-xl border-2 transition-all duration-200 active:scale-90 ${includeHashtags
-                  ? 'bg-white border-white shadow-lg'
-                  : 'bg-transparent border-white/30 group-hover:border-white/50'
-                  }`}>
+                <div className={`w-10 h-10 rounded-2xl border-2 transition-all duration-300 active:scale-90 shadow-lg ${
+                  includeHashtags
+                    ? 'bg-gradient-to-br from-blue-400 to-purple-500 border-blue-300 shadow-blue-400/30'
+                    : 'bg-white/5 border-white/30 group-hover:border-blue-400/50 backdrop-blur-sm'
+                }`}>
                   {includeHashtags && (
-                    <svg className="w-4 h-4 text-black absolute top-1 left-1" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5 text-white absolute top-2.5 left-2.5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   )}
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-lg mb-1">#️⃣</div>
-                <span className="text-xs text-white/70 group-hover:text-white/90 transition-colors">Hashtags</span>
+                <div className="text-xl mb-1">#️⃣</div>
+                <span className="text-xs text-white/80 group-hover:text-white font-medium transition-colors">Hashtags</span>
               </div>
             </label>
 
-            <label className="flex flex-col items-center gap-3 cursor-pointer group">
+            <label className="flex flex-col items-center gap-3 cursor-pointer group transform hover:scale-105 transition-transform">
               <div className="relative">
                 <input
                   type="checkbox"
@@ -890,48 +919,61 @@ export default function Home() {
                   onChange={(e) => setIncludeVignette(e.target.checked)}
                   className="sr-only"
                 />
-                <div className={`w-8 h-8 rounded-xl border-2 transition-all duration-200 active:scale-90 ${includeVignette
-                  ? 'bg-white border-white shadow-lg'
-                  : 'bg-transparent border-white/30 group-hover:border-white/50'
-                  }`}>
+                <div className={`w-10 h-10 rounded-2xl border-2 transition-all duration-300 active:scale-90 shadow-lg ${
+                  includeVignette
+                    ? 'bg-gradient-to-br from-gray-600 to-gray-800 border-gray-400 shadow-gray-400/30'
+                    : 'bg-white/5 border-white/30 group-hover:border-gray-400/50 backdrop-blur-sm'
+                }`}>
                   {includeVignette && (
-                    <svg className="w-4 h-4 text-black absolute top-1 left-1" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-5 h-5 text-white absolute top-2.5 left-2.5" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                     </svg>
                   )}
                 </div>
               </div>
               <div className="text-center">
-                <div className="text-lg mb-1">🌑</div>
-                <span className="text-xs text-white/70 group-hover:text-white/90 transition-colors">Vinheta</span>
+                <div className="text-xl mb-1">🌑</div>
+                <span className="text-xs text-white/80 group-hover:text-white font-medium transition-colors">Vinheta</span>
               </div>
             </label>
           </div>
         </section>
 
-        {/* Botão principal */}
+        {/* Botão principal mobile melhorado */}
         <section>
           <button
             onClick={generateStatus}
             disabled={!theme.trim() || isGenerating}
-            className="w-full py-5 bg-white text-black font-semibold rounded-3xl disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all text-lg shadow-lg"
+            className="relative w-full py-5 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold rounded-3xl disabled:opacity-30 disabled:cursor-not-allowed active:scale-95 transition-all text-lg shadow-2xl hover:shadow-blue-500/30 overflow-hidden group"
           >
-            {isGenerating ? 'Criando com IA...' : 'Gerar Status'}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+            <div className="relative flex items-center justify-center gap-3">
+              {isGenerating && (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+              )}
+              <span>{isGenerating ? '🤖 Criando com IA...' : '✨ Gerar Status'}</span>
+            </div>
           </button>
         </section>
 
-        {/* Botão de download (quando há conteúdo) */}
+        {/* Botão de download mobile melhorado */}
         {generatedContent && (
           <section>
             <button
               onClick={downloadImage}
-              className="w-full py-4 text-white/80 hover:text-white transition-colors text-base border border-white/20 rounded-3xl active:scale-95 bg-white/5 backdrop-blur-sm"
+              className="relative w-full py-4 bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 text-white font-semibold rounded-3xl active:scale-95 transition-all text-base shadow-xl hover:shadow-green-500/30 overflow-hidden group"
             >
-              📱 Baixar Imagem
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+              <div className="relative flex items-center justify-center gap-2">
+                <span className="text-lg">📱</span>
+                <span>Baixar Imagem</span>
+              </div>
             </button>
-            <p className="text-xs text-white/40 text-center mt-2">
-              Fonte: {generatedContent.fontFamily}
-            </p>
+            <div className="mt-3 p-2 bg-white/5 rounded-xl backdrop-blur-sm">
+              <p className="text-xs text-white/70 text-center">
+                <span className="font-medium">Fonte:</span> {generatedContent.fontFamily}
+              </p>
+            </div>
           </section>
         )}
 
