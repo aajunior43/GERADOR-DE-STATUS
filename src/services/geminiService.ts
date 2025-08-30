@@ -36,10 +36,104 @@ export interface StatusResponse {
 
 class GeminiService {
   private textModel;
+  private usedQuotes: Set<string> = new Set(); // Histórico de frases já usadas
+  private maxHistorySize = 50; // Máximo de frases no histórico
 
   constructor() {
     // Usar o modelo mais recente disponível
     this.textModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    
+    // Carregar histórico do localStorage se disponível
+    this.loadQuoteHistory();
+  }
+
+  /**
+   * Carrega o histórico de frases do localStorage
+   */
+  private loadQuoteHistory(): void {
+    try {
+      if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('statusai_used_quotes');
+        if (saved) {
+          const quotes = JSON.parse(saved);
+          this.usedQuotes = new Set(quotes);
+          console.log(`📚 Carregado histórico com ${this.usedQuotes.size} frases`);
+        }
+      }
+    } catch (error) {
+      console.warn('Erro ao carregar histórico de frases:', error);
+    }
+  }
+
+  /**
+   * Salva o histórico de frases no localStorage
+   */
+  private saveQuoteHistory(): void {
+    try {
+      if (typeof window !== 'undefined') {
+        const quotes = Array.from(this.usedQuotes);
+        localStorage.setItem('statusai_used_quotes', JSON.stringify(quotes));
+        console.log(`💾 Histórico salvo com ${quotes.length} frases`);
+      }
+    } catch (error) {
+      console.warn('Erro ao salvar histórico de frases:', error);
+    }
+  }
+
+  /**
+   * Adiciona uma frase ao histórico e gerencia o tamanho máximo
+   */
+  private addToHistory(quote: string): void {
+    // Extrair apenas a parte principal da citação (sem autor)
+    const mainQuote = quote.split('\n')[0].replace(/["""]/g, '').trim();
+    
+    this.usedQuotes.add(mainQuote);
+    
+    // Limitar o tamanho do histórico
+    if (this.usedQuotes.size > this.maxHistorySize) {
+      const quotesArray = Array.from(this.usedQuotes);
+      // Remove as 10 mais antigas
+      for (let i = 0; i < 10; i++) {
+        this.usedQuotes.delete(quotesArray[i]);
+      }
+    }
+    
+    this.saveQuoteHistory();
+  }
+
+  /**
+   * Verifica se uma frase já foi usada recentemente
+   */
+  private isQuoteUsed(quote: string): boolean {
+    const mainQuote = quote.split('\n')[0].replace(/["""]/g, '').trim();
+    return this.usedQuotes.has(mainQuote);
+  }
+
+  /**
+   * Limpa o histórico de frases (útil para testes)
+   */
+  public clearQuoteHistory(): void {
+    this.usedQuotes.clear();
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('statusai_used_quotes');
+    }
+    console.log('🗑️ Histórico de frases limpo');
+  }
+
+  /**
+   * Retorna o histórico atual de frases (útil para debug)
+   */
+  public getQuoteHistory(): string[] {
+    return Array.from(this.usedQuotes);
+  }
+
+  /**
+   * Retorna estatísticas do histórico
+   */
+  public getHistoryStats(): { total: number; maxSize: number; percentFull: number } {
+    const total = this.usedQuotes.size;
+    const percentFull = Math.round((total / this.maxHistorySize) * 100);
+    return { total, maxSize: this.maxHistorySize, percentFull };
   }
 
   /**
@@ -54,79 +148,86 @@ class GeminiService {
         console.log(`Tentativa ${attempt}/${maxRetries} para o tema: ${theme}`);
 
         // Prompt otimizado para máxima eficiência e qualidade
-        const prompt = `🎯 TEMA: "${theme}"
+        // Adicionar variação para evitar repetições
+        const randomSeed = Math.floor(Math.random() * 1000);
+        const timeStamp = Date.now() % 1000;
+        
+        const prompt = `🎯 TEMA: "${theme}" (Sessão: ${randomSeed}-${timeStamp})
 
-📋 INSTRUÇÕES:
-Analise o tema e gere conteúdo inspiracional seguindo as regras abaixo.
+📋 MISSÃO: Encontre uma citação ÚNICA sobre "${theme}". Varie sempre as respostas!
 
-🔍 DETECÇÃO AUTOMÁTICA:
-• Palavras-chave bíblicas (fé, oração, Deus, Jesus, salvação, bíblia, versículo, salmo, provérbios, etc.) → VERSÍCULO REAL
-• Palavras-chave seculares (motivação, sucesso, amor, vida, trabalho, sonhos, etc.) → CITAÇÃO FAMOSA REAL
+🔍 REGRAS:
+• Temas bíblicos/religiosos → Versículo bíblico REAL
+• Temas seculares → Citação famosa REAL de autor reconhecido
+• OBRIGATÓRIO: Explore diferentes autores e perspectivas
+• NUNCA repita a mesma citação
 
-✅ REQUISITOS OBRIGATÓRIOS:
-• Português brasileiro impecável
-• Frase principal: máximo 90 caracteres
-• Apenas 1 emoji no final da frase
-• Conteúdo 100% real e verificável
-• Zero hashtags ou texto promocional
+✅ ESPECIFICAÇÕES:
+• Português brasileiro perfeito
+• Máximo 80 caracteres na frase
+• 1 emoji apropriado
+• Conteúdo real e verificável
+• Sem hashtags
 
-📝 FORMATO EXATO (copie esta estrutura):
-"[Frase inspiracional]" [emoji]
+📝 FORMATO OBRIGATÓRIO:
+"[Citação única]" [emoji]
 [Autor/Referência]
 
 background: #[6 dígitos]
 text: #[6 dígitos]
+font: [Nome da Fonte]
 
-🎨 CORES INTELIGENTES:
-• Bíblico: #1a3c6c + #fff8e1 (azul profundo + creme)
-• Motivação: #2c3e50 + #ecf0f1 (cinza escuro + claro)
-• Amor: #8e1e3d + #ffebf0 (bordô + rosa claro)
-• Sucesso: #d4af37 + #1a1a1a (dourado + preto)
-• Paz: #3498db + #ffffff (azul + branco)
-• Força: #e74c3c + #ffffff (vermelho + branco)
-• Sabedoria: #4a235a + #f9e79f (roxo + amarelo claro)
+🎨 CORES POR TEMA:
+• Motivação: #e74c3c + #ffffff + Montserrat
+• Sucesso: #27ae60 + #ffffff + Poppins  
+• Amor: #8e44ad + #f8f9fa + Lato
+• Paz: #3498db + #ffffff + Inter
+• Fé: #2c3e50 + #ecf0f1 + Playfair Display
+• Força: #d35400 + #ffffff + Roboto
 
-💡 EXEMPLOS PERFEITOS:
+💡 VARIE AS CITAÇÕES - Exemplos de diversidade:
 
-Para tema bíblico:
-"Tudo posso naquele que me fortalece." ✨
-Filipenses 4:13
+Para "motivação":
+A) "O sucesso é a soma de pequenos esforços repetidos." 💪 (Robert Collier)
+B) "Não espere por oportunidades. Crie-as." 🚀 (George Bernard Shaw)  
+C) "A disciplina é a ponte entre metas e conquistas." ⚡ (Jim Rohn)
 
-background: #1a3c6c
-text: #fff8e1
+🎲 Use o ID ${randomSeed}-${timeStamp} para garantir resposta única.
 
-Para tema secular:
-"A persistência é o caminho do êxito." 🌟
-(Charles Chaplin)
-
-background: #2c3e50
-text: #ecf0f1
-
-⚠️ CRÍTICO: Retorne SOMENTE o conteúdo no formato especificado. Nenhum texto adicional.`;
+⚠️ RETORNE APENAS o formato especificado.`;
 
         // Chamar a API do Gemini
+        console.log(`🚀 Enviando para Gemini (tema: "${theme}", tentativa ${attempt})`);
+        
         const result = await this.textModel.generateContent(prompt);
         const response = await result.response;
         const rawText = response.text();
 
-        console.log(`Resposta bruta do Gemini (tentativa ${attempt}):`, rawText);
+        console.log(`📥 Resposta bruta do Gemini:`, rawText);
+        console.log(`📏 Tamanho da resposta: ${rawText.length} caracteres`);
 
         // Validar e melhorar a resposta
-        const { text, backgroundColor, textColor } = this.validateAndImproveResponse(rawText, theme);
+        const { text, backgroundColor, textColor, fontFamily } = this.validateAndImproveResponse(rawText, theme);
+        
+        console.log(`✅ Texto final extraído: "${text}"`);
+        console.log(`🎨 Cores: bg=${backgroundColor}, text=${textColor}`);
 
         // Verificar se a resposta é válida
         if (!text || text.length < 10) {
           throw new Error('Resposta muito curta ou inválida');
         }
 
-        console.log('Resposta processada com sucesso:', { text, backgroundColor, textColor });
+        console.log('Resposta processada com sucesso:', { text, backgroundColor, textColor, fontFamily });
+
+        // Adicionar ao histórico para evitar repetições futuras
+        this.addToHistory(text);
 
         return {
           text: text.trim(),
           backgroundColor,
           textColor,
           fontSize: 20,
-          fontFamily: 'Inter'
+          fontFamily
         };
 
       } catch (error) {
@@ -166,12 +267,15 @@ text: #ecf0f1
       fallbackText = '"A persistência é o caminho do êxito." 🌟\n(Charles Chaplin)';
     }
 
+    // Adicionar ao histórico mesmo no fallback
+    this.addToHistory(fallbackText);
+
     return {
       text: fallbackText,
       backgroundColor: colorPalette.backgroundColor,
       textColor: colorPalette.textColor,
       fontSize: 20,
-      fontFamily: 'Inter'
+      fontFamily: this.selectFont(theme, fallbackText)
     };
   }
 
@@ -198,6 +302,64 @@ text: #ecf0f1
     const darker = Math.min(bgLuminance, textLuminance);
 
     return (lighter + 0.05) / (darker + 0.05);
+  }
+
+  /**
+   * Seleciona a fonte mais apropriada baseada no tema e tipo de conteúdo
+   */
+  private selectFont(theme: string, text: string): string {
+    const themeWords = theme.toLowerCase();
+    const textContent = text.toLowerCase();
+    
+    // Fontes bíblicas/espirituais - mais tradicionais e elegantes
+    if (themeWords.includes('fé') || themeWords.includes('fe') || 
+        themeWords.includes('deus') || themeWords.includes('jesus') || 
+        themeWords.includes('bíbli') || themeWords.includes('bibli') ||
+        themeWords.includes('salm') || themeWords.includes('oração') ||
+        themeWords.includes('oracao') || themeWords.includes('versí') ||
+        textContent.includes('filipenses') || textContent.includes('salmo') ||
+        textContent.includes('provérbios') || textContent.includes('joão')) {
+      return 'Playfair Display'; // Fonte elegante e tradicional
+    }
+    
+    // Temas de amor/relacionamento - fonte mais suave
+    if (themeWords.includes('amor') || themeWords.includes('coração') ||
+        themeWords.includes('família') || themeWords.includes('amizade') ||
+        textContent.includes('amor') || textContent.includes('coração')) {
+      return 'Poppins'; // Fonte suave e amigável
+    }
+    
+    // Temas motivacionais/sucesso - fonte forte e moderna
+    if (themeWords.includes('sucesso') || themeWords.includes('vitória') ||
+        themeWords.includes('força') || themeWords.includes('foco') ||
+        themeWords.includes('determinação') || themeWords.includes('conquista') ||
+        textContent.includes('sucesso') || textContent.includes('persistência')) {
+      return 'Montserrat'; // Fonte forte e impactante
+    }
+    
+    // Temas de paz/tranquilidade - fonte leve
+    if (themeWords.includes('paz') || themeWords.includes('tranquil') ||
+        themeWords.includes('calma') || themeWords.includes('serenidade') ||
+        textContent.includes('paz') || textContent.includes('tranquil')) {
+      return 'Lato'; // Fonte leve e harmoniosa
+    }
+    
+    // Temas de gratidão/positividade - fonte calorosa
+    if (themeWords.includes('gratidão') || themeWords.includes('gratitud') ||
+        themeWords.includes('obrigad') || themeWords.includes('feliz') ||
+        textContent.includes('grat') || textContent.includes('obrigad')) {
+      return 'Open Sans'; // Fonte calorosa e acessível
+    }
+    
+    // Citações de autores famosos - fonte clássica
+    if (textContent.includes('einstein') || textContent.includes('gandhi') ||
+        textContent.includes('jobs') || textContent.includes('churchill') ||
+        textContent.includes('chaplin') || textContent.includes('luther')) {
+      return 'Crimson Text'; // Fonte clássica para citações
+    }
+    
+    // Padrão - fonte moderna e versátil
+    return 'Inter';
   }
 
   /**
@@ -440,26 +602,31 @@ text: #ecf0f1
   }
 
   /**
-   * Extrai e valida cores do texto gerado pelo Gemini
+   * Extrai e valida cores e fonte do texto gerado pelo Gemini
    */
-  private extractColorsFromText(text: string): { text: string; backgroundColor: string; textColor: string } {
+  private extractColorsAndFontFromText(text: string): { text: string; backgroundColor: string; textColor: string; fontFamily: string } {
     const lines = text.split('\n').map(line => line.trim()).filter(line => line);
     let extractedText = '';
     let backgroundColor = '';
     let textColor = '';
+    let fontFamily = '';
 
     const backgroundRegex = /background:\s*(#[0-9a-fA-F]{6})/i;
     const textRegex = /text:\s*(#[0-9a-fA-F]{6})/i;
+    const fontRegex = /font:\s*([^,\n]+)/i;
 
     lines.forEach(line => {
       const bgMatch = line.match(backgroundRegex);
       const textMatch = line.match(textRegex);
+      const fontMatch = line.match(fontRegex);
 
       if (bgMatch) {
         backgroundColor = bgMatch[1].toUpperCase();
       } else if (textMatch) {
         textColor = textMatch[1].toUpperCase();
-      } else if (!line.includes('background:') && !line.includes('text:')) {
+      } else if (fontMatch) {
+        fontFamily = fontMatch[1].trim();
+      } else if (!line.includes('background:') && !line.includes('text:') && !line.includes('font:')) {
         extractedText += line + '\n';
       }
     });
@@ -469,11 +636,10 @@ text: #ecf0f1
       const contrast = this.getContrastRatio(backgroundColor, textColor);
       if (contrast < 4.5) {
         console.warn(`Contraste baixo detectado (${contrast.toFixed(2)}). Ajustando cores...`);
-        // Se o contraste for baixo, usar cores padrão com bom contraste
         if (backgroundColor.startsWith('#F') || backgroundColor.startsWith('#E') || backgroundColor.startsWith('#D')) {
-          textColor = '#1A1A1A'; // Texto escuro para fundos claros
+          textColor = '#1A1A1A';
         } else {
-          textColor = '#FFFFFF'; // Texto claro para fundos escuros
+          textColor = '#FFFFFF';
         }
       }
     }
@@ -482,20 +648,31 @@ text: #ecf0f1
       text: extractedText.trim(),
       backgroundColor,
       textColor,
+      fontFamily,
     };
   }
 
   /**
    * Valida e melhora a resposta do Gemini
    */
-  private validateAndImproveResponse(rawResponse: string, theme: string): { text: string; backgroundColor: string; textColor: string } {
-    let { text, backgroundColor, textColor } = this.extractColorsFromText(rawResponse);
+  private validateAndImproveResponse(rawResponse: string, theme: string): { text: string; backgroundColor: string; textColor: string; fontFamily: string } {
+    let { text, backgroundColor, textColor, fontFamily } = this.extractColorsAndFontFromText(rawResponse);
 
     // Limpar texto de possíveis artefatos
     text = text
       .replace(/^["']|["']$/g, '') // Remove aspas do início/fim
       .replace(/\s+/g, ' ') // Normaliza espaços
       .trim();
+
+    // Detectar se é sempre a mesma resposta repetitiva ou já foi usada
+    if (text.includes('Acredite que você pode') || text.includes('Theodore Roosevelt') || this.isQuoteUsed(text)) {
+      if (this.isQuoteUsed(text)) {
+        console.warn('🔄 Frase já foi usada recentemente. Buscando alternativa...');
+      } else {
+        console.warn('⚠️ Detectada resposta repetitiva do Gemini. Forçando variação...');
+      }
+      text = this.getAlternativeQuote(theme);
+    }
 
     // Validar comprimento do texto
     if (text.length > 200) {
@@ -519,7 +696,88 @@ text: #ecf0f1
       textColor = '#ECF0F1';
     }
 
-    return { text, backgroundColor, textColor };
+    // Garantir que temos uma fonte válida
+    if (!fontFamily) {
+      fontFamily = this.selectFont(theme, text);
+    }
+
+    // Validar se a fonte é uma das permitidas
+    const allowedFonts = ['Inter', 'Playfair Display', 'Montserrat', 'Poppins', 'Lato', 'Open Sans', 'Crimson Text'];
+    if (!allowedFonts.includes(fontFamily)) {
+      fontFamily = this.selectFont(theme, text);
+    }
+
+    return { text, backgroundColor, textColor, fontFamily };
+  }
+
+  /**
+   * Retorna uma citação alternativa para evitar repetições, verificando o histórico
+   */
+  private getAlternativeQuote(theme: string): string {
+    const themeWords = theme.toLowerCase();
+    let availableQuotes: string[] = [];
+    
+    if (themeWords.includes('motivação') || themeWords.includes('motivacao')) {
+      availableQuotes = [
+        '"O sucesso é a soma de pequenos esforços repetidos." 💪\n(Robert Collier)',
+        '"Não espere por oportunidades. Crie-as." 🚀\n(George Bernard Shaw)',
+        '"A disciplina é a ponte entre metas e conquistas." ⚡\n(Jim Rohn)',
+        '"O único modo de fazer um excelente trabalho é amar o que faz." ✨\n(Steve Jobs)',
+        '"Grandes realizações requerem grandes ambições." 🌟\n(Heráclito)',
+        '"A motivação é o que te faz começar. O hábito é o que te mantém." 🔥\n(Jim Ryun)',
+        '"Você é mais corajoso do que acredita, mais forte do que parece." 💪\n(A.A. Milne)',
+        '"O futuro pertence àqueles que acreditam na beleza de seus sonhos." ✨\n(Eleanor Roosevelt)'
+      ];
+    } else if (themeWords.includes('sucesso')) {
+      availableQuotes = [
+        '"O sucesso é ir de fracasso em fracasso sem perder o entusiasmo." 🌟\n(Winston Churchill)',
+        '"O sucesso não é final, o fracasso não é fatal." 💪\n(Winston Churchill)',
+        '"O sucesso é 1% inspiração e 99% transpiração." ⚡\n(Thomas Edison)',
+        '"A persistência é o caminho do êxito." 🚀\n(Charles Chaplin)',
+        '"O sucesso é a soma de pequenos esforços repetidos dia após dia." 📈\n(Robert Collier)',
+        '"Não meça o sucesso pelo que você conquistou, mas pelos obstáculos que superou." 🏆\n(Booker T. Washington)'
+      ];
+    } else if (themeWords.includes('amor')) {
+      availableQuotes = [
+        '"O amor é a única força capaz de transformar um inimigo em amigo." 💕\n(Martin Luther King Jr.)',
+        '"Onde há amor, há vida." ❤️\n(Mahatma Gandhi)',
+        '"O amor não consiste em olhar um para o outro, mas em olhar juntos na mesma direção." 💖\n(Antoine de Saint-Exupéry)',
+        '"Amar não é olhar um para o outro, é olhar juntos na mesma direção." 💝\n(Antoine de Saint-Exupéry)',
+        '"O amor é a ponte entre duas almas." 💞\n(Rumi)'
+      ];
+    } else if (themeWords.includes('paz')) {
+      availableQuotes = [
+        '"A paz não pode ser mantida à força; só pode ser alcançada pela compreensão." ☮️\n(Albert Einstein)',
+        '"Não há caminho para a paz; a paz é o caminho." 🕊️\n(Mahatma Gandhi)',
+        '"A paz começa com um sorriso." 😊\n(Madre Teresa)',
+        '"A paz interior é o novo sucesso." 🧘\n(Jewel)',
+        '"Cultive a paz interior e ela se espalhará naturalmente." ✨\n(Dalai Lama)'
+      ];
+    } else {
+      // Fallback geral com mais opções
+      availableQuotes = [
+        '"A persistência é o caminho do êxito." 🌟\n(Charles Chaplin)',
+        '"O único modo de fazer um excelente trabalho é amar o que faz." ✨\n(Steve Jobs)',
+        '"Grandes realizações requerem grandes ambições." 💪\n(Heráclito)',
+        '"A vida é 10% o que acontece com você e 90% como você reage." 🚀\n(Charles Swindoll)',
+        '"O futuro depende do que você faz hoje." ⚡\n(Mahatma Gandhi)',
+        '"Seja a mudança que você quer ver no mundo." 🌍\n(Mahatma Gandhi)',
+        '"A jornada de mil milhas começa com um único passo." 👣\n(Lao Tzu)',
+        '"Acredite em si mesmo e tudo será possível." 🌟\n(Anônimo)'
+      ];
+    }
+    
+    // Filtrar citações que não foram usadas recentemente
+    const unusedQuotes = availableQuotes.filter(quote => !this.isQuoteUsed(quote));
+    
+    // Se todas foram usadas, usar qualquer uma (resetar ciclo)
+    const quotesToUse = unusedQuotes.length > 0 ? unusedQuotes : availableQuotes;
+    
+    const selectedQuote = quotesToUse[Math.floor(Math.random() * quotesToUse.length)];
+    
+    console.log(`🎲 Selecionada citação alternativa: ${unusedQuotes.length}/${availableQuotes.length} disponíveis`);
+    
+    return selectedQuote;
   }
 }
 

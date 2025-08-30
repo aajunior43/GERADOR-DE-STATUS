@@ -56,7 +56,10 @@ export default function Home() {
     ctx.fillRect(0, 0, 360, 640);
     
     ctx.fillStyle = generatedContent.textColor;
-    ctx.font = `bold ${generatedContent.fontSize}px ${generatedContent.fontFamily}`;
+    // Mapear fonte para uma compatível com canvas
+    const canvasFont = generatedContent.fontFamily.includes('Playfair') ? 'serif' :
+                      generatedContent.fontFamily.includes('Crimson') ? 'serif' : 'sans-serif';
+    ctx.font = `bold ${generatedContent.fontSize}px ${canvasFont}`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     
@@ -88,6 +91,20 @@ export default function Home() {
 
   const quickThemes = ['Motivação', 'Amor', 'Sucesso', 'Paz', 'Fé', 'Gratidão'];
 
+  // Função para mapear nomes de fontes para classes CSS
+  const getFontClass = (fontName: string): string => {
+    const fontMap: Record<string, string> = {
+      'Inter': 'font-inter',
+      'Playfair Display': 'font-playfair',
+      'Montserrat': 'font-montserrat',
+      'Poppins': 'font-poppins',
+      'Lato': 'font-lato',
+      'Open Sans': 'font-opensans',
+      'Crimson Text': 'font-crimson'
+    };
+    return fontMap[fontName] || 'font-inter';
+  };
+
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-6">
       <div className="w-full max-w-sm mx-auto space-y-8">
@@ -102,14 +119,13 @@ export default function Home() {
         <div className="flex justify-center">
           <div className="w-40 aspect-[9/16] rounded-2xl overflow-hidden shadow-2xl">
             <div 
-              className="w-full h-full flex items-center justify-center p-3 text-center"
+              className={`w-full h-full flex items-center justify-center p-3 text-center ${generatedContent ? getFontClass(generatedContent.fontFamily) : 'font-inter'}`}
               style={{
                 background: generatedContent 
                   ? `linear-gradient(135deg, ${generatedContent.backgroundColor} 0%, ${adjustBrightness(generatedContent.backgroundColor, -15)} 100%)`
                   : 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
                 color: generatedContent?.textColor || '#f39c12',
-                fontSize: '11px',
-                fontFamily: 'Inter, sans-serif'
+                fontSize: '11px'
               }}
             >
               {isGenerating ? (
@@ -154,15 +170,40 @@ export default function Home() {
           {isGenerating ? 'Gerando...' : 'Gerar Status'}
         </button>
 
-        {/* Download (só aparece quando tem conteúdo) */}
+        {/* Download e info da fonte */}
         {generatedContent && (
-          <button
-            onClick={downloadImage}
-            className="w-full py-2 text-white/60 hover:text-white transition-colors text-sm"
-          >
-            Baixar Imagem
-          </button>
+          <div className="space-y-2">
+            <button
+              onClick={downloadImage}
+              className="w-full py-2 text-white/60 hover:text-white transition-colors text-sm"
+            >
+              Baixar Imagem
+            </button>
+            <p className="text-xs text-white/40 text-center">
+              Fonte: {generatedContent.fontFamily}
+            </p>
+          </div>
         )}
+
+        {/* Botão para limpar histórico (debug) */}
+        <button
+          onClick={() => {
+            const geminiService = useGeminiService();
+            geminiService.clearQuoteHistory();
+            const stats = geminiService.getHistoryStats();
+            alert(`Histórico limpo! ${stats.total}/${stats.maxSize} frases (${stats.percentFull}%)`);
+          }}
+          className="text-xs text-white/30 hover:text-white/60 transition-colors mt-4"
+        >
+          Limpar Histórico ({(() => {
+            try {
+              const geminiService = useGeminiService();
+              return geminiService.getHistoryStats().total;
+            } catch {
+              return 0;
+            }
+          })()})
+        </button>
 
         {/* Temas rápidos minimalistas */}
         <div className="grid grid-cols-2 gap-2 pt-4">

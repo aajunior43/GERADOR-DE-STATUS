@@ -1,4 +1,3 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
@@ -202,3 +201,12 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #FFD700;
 }
+
+/* Classes de fonte personalizadas */
+.font-inter { font-family: var(--font-inter), sans-serif; }
+.font-playfair { font-family: var(--font-playfair), serif; }
+.font-montserrat { font-family: var(--font-montserrat), sans-serif; }
+.font-poppins { font-family: var(--font-poppins), sans-serif; }
+.font-lato { font-family: var(--font-lato), sans-serif; }
+.font-opensans { font-family: var(--font-opensans), sans-serif; }
+.font-crimson { font-family: var(--font-crimson), serif; }
