@@ -14,18 +14,18 @@ export default function Home() {
   const [includeHashtags, setIncludeHashtags] = useState(false);
   const [includeVignette, setIncludeVignette] = useState(false);
   const [currentThemeIndex, setCurrentThemeIndex] = useState(0);
-  
+
   const { showToast, ToastContainer } = useToast();
 
   const generateStatus = async () => {
     if (!theme.trim()) return;
-    
+
     hapticFeedback.medium();
     setIsGenerating(true);
-    
+
     try {
       const geminiService = useGeminiService();
-      
+
       const response = await geminiService.generateStatus({
         theme,
         style: 'modern',
@@ -35,7 +35,7 @@ export default function Home() {
         includeEmojis,
         includeVignette,
       });
-      
+
       setGeneratedContent(response.generatedContent);
       hapticFeedback.success();
       showToast('Status criado com sucesso!', 'success');
@@ -103,11 +103,11 @@ export default function Home() {
       for (const word of words) {
         const testLine = currentLine + (currentLine ? ' ' : '') + word;
         const metrics = ctx.measureText(testLine);
-        
+
         if (metrics.width > maxWidth && currentLine) {
           lines.push(currentLine);
           currentLine = word;
-          
+
           // Se uma palavra sozinha for muito longa, quebrar ela
           if (ctx.measureText(word).width > maxWidth) {
             let partialWord = '';
@@ -126,11 +126,11 @@ export default function Home() {
           currentLine = testLine;
         }
       }
-      
+
       if (currentLine) {
         lines.push(currentLine);
       }
-      
+
       return lines;
     };
 
@@ -138,16 +138,16 @@ export default function Home() {
     const margin = 40; // Margem lateral
     const maxWidth = canvas.width - (margin * 2);
     let fontSize = generatedContent.fontSize || 24;
-    
+
     // Dividir texto em parágrafos (quebras de linha originais)
     const paragraphs = generatedContent.text.split('\n').filter(p => p.trim());
     let allLines: string[] = [];
-    
+
     // Quebrar cada parágrafo em linhas que cabem na tela
     paragraphs.forEach((paragraph, index) => {
       const wrappedLines = wrapText(paragraph.trim(), maxWidth, fontSize);
       allLines = allLines.concat(wrappedLines);
-      
+
       // Adicionar espaço entre parágrafos (exceto no último)
       if (index < paragraphs.length - 1) {
         allLines.push(''); // Linha vazia para espaçamento
@@ -164,24 +164,24 @@ export default function Home() {
     while (fontSize > minFontSize && iterations < maxIterations) {
       const lineHeight = fontSize * 1.4;
       const totalHeight = allLines.length * lineHeight;
-      
+
       if (totalHeight <= maxTextHeight) {
         break; // Texto cabe, sair do loop
       }
-      
+
       // Reduzir fonte e recalcular linhas
       fontSize = Math.max(fontSize - 2, minFontSize);
       allLines = [];
-      
+
       paragraphs.forEach((paragraph, index) => {
         const wrappedLines = wrapText(paragraph.trim(), maxWidth, fontSize);
         allLines = allLines.concat(wrappedLines);
-        
+
         if (index < paragraphs.length - 1) {
           allLines.push('');
         }
       });
-      
+
       iterations++;
     }
 
@@ -209,7 +209,7 @@ export default function Home() {
     link.download = `status-${theme.toLowerCase().replace(/\s+/g, '-')}.png`;
     link.href = canvas.toDataURL('image/png');
     link.click();
-    
+
     showToast('Imagem baixada!', 'success');
   };
 
@@ -219,7 +219,7 @@ export default function Home() {
     const R = (num >> 16) + amt;
     const G = (num >> 8 & 0x00FF) + amt;
     const B = (num & 0x0000FF) + amt;
-    
+
     return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
       (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
       (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
@@ -228,7 +228,7 @@ export default function Home() {
   const quickThemes = [
     'Motivação', 'Amor', 'Sucesso', 'Sabedoria', 'Força', 'Paz',
     'Felicidade', 'Coragem', 'Esperança', 'Gratidão', 'Família', 'Amizade',
-    'Trabalho', 'Sonhos', 'Vida', 'Fé', 'Superação', 'Inspiração'
+    'Trabalho', 'Sonhos', 'Vida', 'Fé', 'Superação', 'Inspiração', 'Filme', 'Séries', 'Música'
   ];
 
   // Gestos de swipe para navegação entre temas
@@ -260,10 +260,14 @@ export default function Home() {
   // Atualiza o índice quando o tema é alterado manualmente
   useEffect(() => {
     const index = quickThemes.indexOf(theme);
-    if (index !== -1) {
+    console.log(`🔍 useEffect - Tema: "${theme}", Índice atual: ${currentThemeIndex}, Índice encontrado: ${index}`);
+    if (index !== -1 && index !== currentThemeIndex) {
+      console.log(`🔄 Sincronizando índice: ${currentThemeIndex} → ${index}`);
       setCurrentThemeIndex(index);
+    } else if (theme.trim() && index === -1) {
+      console.log(`⚠️ Tema "${theme}" não encontrado na lista de temas rápidos`);
     }
-  }, [theme, quickThemes]);
+  }, [theme, quickThemes, currentThemeIndex]);
 
   // Função para mapear nomes de fontes para classes CSS
   const getFontClass = (fontName: string): string => {
@@ -283,7 +287,7 @@ export default function Home() {
     <div className="min-h-screen bg-black">
       {/* Container principal com scroll suave */}
       <div className="max-w-sm mx-auto px-6 py-8 space-y-8">
-        
+
         {/* Header elegante */}
         <header className="text-center space-y-3">
           <h1 className="text-3xl font-light text-white tracking-wide">Status AI</h1>
@@ -294,14 +298,14 @@ export default function Home() {
         {/* Preview centralizado e destacado */}
         <section className="flex justify-center">
           <div className="relative group">
-            <div 
+            <div
               className="w-48 aspect-[9/16] rounded-3xl overflow-hidden shadow-2xl border border-white/10 active:scale-95 transition-all duration-300 cursor-pointer"
               onClick={() => generatedContent && downloadImage()}
             >
-              <div 
+              <div
                 className={`w-full h-full flex items-center justify-center p-5 text-center relative ${generatedContent ? getFontClass(generatedContent.fontFamily) : 'font-inter'}`}
                 style={{
-                  background: generatedContent 
+                  background: generatedContent
                     ? `linear-gradient(135deg, ${generatedContent.backgroundColor} 0%, ${adjustBrightness(generatedContent.backgroundColor, -15)} 100%)`
                     : 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
                   color: generatedContent?.textColor || '#f39c12',
@@ -310,7 +314,7 @@ export default function Home() {
               >
                 {/* Vinheta preta no preview */}
                 {includeVignette && (
-                  <div 
+                  <div
                     className="absolute inset-0 pointer-events-none"
                     style={{
                       background: 'radial-gradient(circle at center, rgba(0,0,0,0) 0%, rgba(0,0,0,0.1) 70%, rgba(0,0,0,0.6) 100%)'
@@ -347,7 +351,7 @@ export default function Home() {
                 )}
               </div>
             </div>
-            
+
             {/* Indicador de download */}
             {generatedContent && (
               <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1 text-xs text-white/70">
@@ -385,11 +389,10 @@ export default function Home() {
                   onChange={(e) => setIncludeEmojis(e.target.checked)}
                   className="sr-only"
                 />
-                <div className={`w-8 h-8 rounded-xl border-2 transition-all duration-200 active:scale-90 ${
-                  includeEmojis 
-                    ? 'bg-white border-white shadow-lg' 
-                    : 'bg-transparent border-white/30 group-hover:border-white/50'
-                }`}>
+                <div className={`w-8 h-8 rounded-xl border-2 transition-all duration-200 active:scale-90 ${includeEmojis
+                  ? 'bg-white border-white shadow-lg'
+                  : 'bg-transparent border-white/30 group-hover:border-white/50'
+                  }`}>
                   {includeEmojis && (
                     <svg className="w-4 h-4 text-black absolute top-1 left-1" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -402,7 +405,7 @@ export default function Home() {
                 <span className="text-xs text-white/70 group-hover:text-white/90 transition-colors">Emojis</span>
               </div>
             </label>
-            
+
             <label className="flex flex-col items-center gap-3 cursor-pointer group">
               <div className="relative">
                 <input
@@ -411,11 +414,10 @@ export default function Home() {
                   onChange={(e) => setIncludeHashtags(e.target.checked)}
                   className="sr-only"
                 />
-                <div className={`w-8 h-8 rounded-xl border-2 transition-all duration-200 active:scale-90 ${
-                  includeHashtags 
-                    ? 'bg-white border-white shadow-lg' 
-                    : 'bg-transparent border-white/30 group-hover:border-white/50'
-                }`}>
+                <div className={`w-8 h-8 rounded-xl border-2 transition-all duration-200 active:scale-90 ${includeHashtags
+                  ? 'bg-white border-white shadow-lg'
+                  : 'bg-transparent border-white/30 group-hover:border-white/50'
+                  }`}>
                   {includeHashtags && (
                     <svg className="w-4 h-4 text-black absolute top-1 left-1" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -437,11 +439,10 @@ export default function Home() {
                   onChange={(e) => setIncludeVignette(e.target.checked)}
                   className="sr-only"
                 />
-                <div className={`w-8 h-8 rounded-xl border-2 transition-all duration-200 active:scale-90 ${
-                  includeVignette 
-                    ? 'bg-white border-white shadow-lg' 
-                    : 'bg-transparent border-white/30 group-hover:border-white/50'
-                }`}>
+                <div className={`w-8 h-8 rounded-xl border-2 transition-all duration-200 active:scale-90 ${includeVignette
+                  ? 'bg-white border-white shadow-lg'
+                  : 'bg-transparent border-white/30 group-hover:border-white/50'
+                  }`}>
                   {includeVignette && (
                     <svg className="w-4 h-4 text-black absolute top-1 left-1" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -489,15 +490,17 @@ export default function Home() {
             <button
               onClick={() => {
                 const prevIndex = currentThemeIndex === 0 ? quickThemes.length - 1 : currentThemeIndex - 1;
+                const prevTheme = quickThemes[prevIndex];
+                console.log(`⬅️ Navegação anterior: ${prevTheme} (índice ${prevIndex})`);
                 setCurrentThemeIndex(prevIndex);
-                setTheme(quickThemes[prevIndex]);
+                setTheme(prevTheme);
               }}
               disabled={isGenerating}
               className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 active:scale-90 transition-all disabled:opacity-30"
             >
               ←
             </button>
-            
+
             <div className="flex-1 text-center mx-4">
               <div className="text-white/90 text-base font-medium mb-2">
                 {quickThemes[currentThemeIndex]}
@@ -506,19 +509,20 @@ export default function Home() {
                 {quickThemes.map((_, index) => (
                   <div
                     key={index}
-                    className={`w-2 h-2 rounded-full transition-all ${
-                      index === currentThemeIndex ? 'bg-white/90 scale-110' : 'bg-white/30'
-                    }`}
+                    className={`w-2 h-2 rounded-full transition-all ${index === currentThemeIndex ? 'bg-white/90 scale-110' : 'bg-white/30'
+                      }`}
                   />
                 ))}
               </div>
             </div>
-            
+
             <button
               onClick={() => {
                 const nextIndex = (currentThemeIndex + 1) % quickThemes.length;
+                const nextTheme = quickThemes[nextIndex];
+                console.log(`➡️ Navegação próxima: ${nextTheme} (índice ${nextIndex})`);
                 setCurrentThemeIndex(nextIndex);
-                setTheme(quickThemes[nextIndex]);
+                setTheme(nextTheme);
               }}
               disabled={isGenerating}
               className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-white/60 active:scale-90 transition-all disabled:opacity-30"
@@ -526,23 +530,24 @@ export default function Home() {
               →
             </button>
           </div>
-          
+
           {/* Grid de temas */}
           <div className="grid grid-cols-3 gap-3">
             {quickThemes.map((category, index) => (
               <button
                 key={category}
                 onClick={() => {
+                  console.log(`🎯 Clicou em: ${category} (índice ${index})`);
                   setCurrentThemeIndex(index);
                   setTheme(category);
+                  console.log(`✅ Definido: tema="${category}", índice=${index}`);
                   setTimeout(() => generateStatus(), 100);
                 }}
                 disabled={isGenerating}
-                className={`py-3 px-4 transition-all disabled:opacity-30 text-sm rounded-2xl active:scale-95 ${
-                  index === currentThemeIndex
-                    ? 'bg-white/15 text-white border border-white/30 shadow-lg'
-                    : 'text-white/60 hover:text-white/90 hover:bg-white/5 border border-white/10'
-                }`}
+                className={`py-3 px-4 transition-all disabled:opacity-30 text-sm rounded-2xl active:scale-95 ${index === currentThemeIndex
+                  ? 'bg-white/15 text-white border border-white/30 shadow-lg'
+                  : 'text-white/60 hover:text-white/90 hover:bg-white/5 border border-white/10'
+                  }`}
               >
                 {category}
               </button>
@@ -555,7 +560,7 @@ export default function Home() {
           <div className="text-xs text-white/40">
             Dicas: Deslize ← → para trocar temas • Deslize ↑ para baixar
           </div>
-          
+
           {/* Debug info (menor e mais discreto) */}
           <button
             onClick={() => {
@@ -577,7 +582,7 @@ export default function Home() {
           </button>
         </section>
       </div>
-      
+
       {/* Container de toasts */}
       <ToastContainer />
     </div>
