@@ -64,25 +64,141 @@ export default function Home() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    canvas.width = 360;
-    canvas.height = 640;
+    // Resolução mais alta para melhor qualidade
+    const scale = 2;
+    canvas.width = 360 * scale;
+    canvas.height = 640 * scale;
+    ctx.scale(scale, scale);
 
-    // Criar gradiente de fundo
-    const gradient = ctx.createLinearGradient(0, 0, 0, 640);
-    gradient.addColorStop(0, generatedContent.backgroundColor);
-    gradient.addColorStop(1, adjustBrightness(generatedContent.backgroundColor, -20));
+    // Anti-aliasing para texto mais suave
+    ctx.textRenderingOptimization = 'optimizeQuality';
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    // Criar gradiente de fundo mais complexo
+    const gradient = ctx.createLinearGradient(0, 0, 360, 640);
+    const baseColor = generatedContent.backgroundColor;
+    gradient.addColorStop(0, adjustBrightness(baseColor, 10));
+    gradient.addColorStop(0.3, baseColor);
+    gradient.addColorStop(0.7, adjustBrightness(baseColor, -15));
+    gradient.addColorStop(1, adjustBrightness(baseColor, -30));
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, 360, 640);
 
-    // Adicionar vinheta preta se solicitado
+    // Adicionar textura sutil de ruído
+    const addNoise = () => {
+      const imageData = ctx.getImageData(0, 0, 360, 640);
+      const data = imageData.data;
+      for (let i = 0; i < data.length; i += 4) {
+        const noise = (Math.random() - 0.5) * 8;
+        data[i] = Math.max(0, Math.min(255, data[i] + noise));
+        data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + noise));
+        data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + noise));
+      }
+      ctx.putImageData(imageData, 0, 0);
+    };
+    addNoise();
+
+    // Adicionar vinheta mais sofisticada
     if (includeVignette) {
-      const vignetteGradient = ctx.createRadialGradient(180, 320, 0, 180, 320, 400);
+      const vignetteGradient = ctx.createRadialGradient(180, 320, 0, 180, 320, 450);
       vignetteGradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-      vignetteGradient.addColorStop(0.7, 'rgba(0, 0, 0, 0.1)');
-      vignetteGradient.addColorStop(1, 'rgba(0, 0, 0, 0.6)');
+      vignetteGradient.addColorStop(0.6, 'rgba(0, 0, 0, 0.05)');
+      vignetteGradient.addColorStop(0.8, 'rgba(0, 0, 0, 0.2)');
+      vignetteGradient.addColorStop(1, 'rgba(0, 0, 0, 0.7)');
       ctx.fillStyle = vignetteGradient;
       ctx.fillRect(0, 0, 360, 640);
     }
+
+    // Adicionar elementos decorativos baseados no tema
+    const addThemeDecorations = () => {
+      ctx.save();
+      ctx.globalAlpha = 0.08;
+      ctx.strokeStyle = generatedContent.textColor;
+      ctx.fillStyle = generatedContent.textColor;
+
+      const themeKey = theme.toLowerCase();
+
+      if (themeKey.includes('amor') || themeKey.includes('família')) {
+        // Corações sutis
+        for (let i = 0; i < 3; i++) {
+          const x = 50 + Math.random() * 260;
+          const y = 100 + Math.random() * 440;
+          drawHeart(ctx, x, y, 8);
+        }
+      } else if (themeKey.includes('música')) {
+        // Notas musicais
+        for (let i = 0; i < 4; i++) {
+          const x = 60 + Math.random() * 240;
+          const y = 120 + Math.random() * 400;
+          drawMusicNote(ctx, x, y, 12);
+        }
+      } else if (themeKey.includes('estrela') || themeKey.includes('sonhos')) {
+        // Estrelas
+        for (let i = 0; i < 5; i++) {
+          const x = 40 + Math.random() * 280;
+          const y = 80 + Math.random() * 480;
+          drawStar(ctx, x, y, 6);
+        }
+      } else {
+        // Padrão geométrico padrão
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(60, 80);
+        ctx.lineTo(300, 80);
+        ctx.moveTo(60, 560);
+        ctx.lineTo(300, 560);
+        ctx.stroke();
+
+        // Círculos decorativos nos cantos
+        ctx.beginPath();
+        ctx.arc(40, 60, 15, 0, Math.PI * 2);
+        ctx.arc(320, 60, 15, 0, Math.PI * 2);
+        ctx.arc(40, 580, 15, 0, Math.PI * 2);
+        ctx.arc(320, 580, 15, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    };
+
+    // Funções auxiliares para desenhar formas
+    const drawHeart = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
+      ctx.beginPath();
+      ctx.moveTo(x, y + size / 4);
+      ctx.bezierCurveTo(x, y, x - size / 2, y, x - size / 2, y + size / 4);
+      ctx.bezierCurveTo(x - size / 2, y + size / 2, x, y + size, x, y + size);
+      ctx.bezierCurveTo(x, y + size, x + size / 2, y + size / 2, x + size / 2, y + size / 4);
+      ctx.bezierCurveTo(x + size / 2, y, x, y, x, y + size / 4);
+      ctx.fill();
+    };
+
+    const drawMusicNote = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
+      ctx.beginPath();
+      ctx.arc(x, y + size, size / 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillRect(x + size / 4, y, 2, size);
+    };
+
+    const drawStar = (ctx: CanvasRenderingContext2D, x: number, y: number, size: number) => {
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const angle = (i * Math.PI * 2) / 5 - Math.PI / 2;
+        const xPos = x + Math.cos(angle) * size;
+        const yPos = y + Math.sin(angle) * size;
+        if (i === 0) ctx.moveTo(xPos, yPos);
+        else ctx.lineTo(xPos, yPos);
+
+        const innerAngle = ((i + 0.5) * Math.PI * 2) / 5 - Math.PI / 2;
+        const innerX = x + Math.cos(innerAngle) * (size / 2);
+        const innerY = y + Math.sin(innerAngle) * (size / 2);
+        ctx.lineTo(innerX, innerY);
+      }
+      ctx.closePath();
+      ctx.fill();
+    };
+
+    addThemeDecorations();
 
     // Configurar texto
     ctx.fillStyle = generatedContent.textColor;
@@ -192,22 +308,45 @@ export default function Home() {
       allLines.push('...'); // Indicar que o texto foi truncado
     }
 
-    // Desenhar o texto
+    // Desenhar o texto com melhorias visuais
     ctx.font = `bold ${fontSize}px ${canvasFont}`;
     const finalLineHeight = fontSize * 1.4;
     const textHeight = allLines.length * finalLineHeight;
-    const startY = (canvas.height - textHeight) / 2 + finalLineHeight / 2;
+    const startY = (640 - textHeight) / 2 + finalLineHeight / 2; // Usar altura original
 
     allLines.forEach((line, index) => {
-      if (line.trim()) { // Só desenhar linhas não vazias
-        ctx.fillText(line, canvas.width / 2, startY + (index * finalLineHeight));
+      if (line.trim()) {
+        const x = 180; // Centro horizontal
+        const y = startY + (index * finalLineHeight);
+
+        // Sombra do texto para melhor legibilidade
+        ctx.save();
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillText(line, x + 2, y + 2);
+        ctx.restore();
+
+        // Texto principal
+        ctx.fillStyle = generatedContent.textColor;
+        ctx.fillText(line, x, y);
+
+        // Brilho sutil no texto (opcional)
+        if (theme.toLowerCase().includes('inspiração') || theme.toLowerCase().includes('motivação')) {
+          ctx.save();
+          ctx.globalAlpha = 0.2;
+          ctx.fillStyle = '#ffffff';
+          ctx.fillText(line, x, y - 1);
+          ctx.restore();
+        }
       }
     });
 
-    // Download da imagem
+    // Download da imagem com qualidade máxima
     const link = document.createElement('a');
-    link.download = `status-${theme.toLowerCase().replace(/\s+/g, '-')}.png`;
-    link.href = canvas.toDataURL('image/png');
+    const timestamp = new Date().toISOString().slice(0, 10);
+    link.download = `status-${theme.toLowerCase().replace(/\s+/g, '-')}-${timestamp}.png`;
+
+    // Usar qualidade máxima para PNG
+    link.href = canvas.toDataURL('image/png', 1.0);
     link.click();
 
     showToast('Imagem baixada!', 'success');
