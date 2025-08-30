@@ -229,8 +229,6 @@ export default function Home() {
     'Motivação', 'Amor', 'Sucesso', 'Sabedoria', 'Força', 'Paz',
     'Felicidade', 'Coragem', 'Esperança', 'Gratidão', 'Família', 'Amizade',
     'Trabalho', 'Sonhos', 'Vida', 'Fé', 'Superação', 'Inspiração'
-    'Harry Potter', 'Senhor dos Anéis', 'Dom Casmurro', 'O Cortiço', 'Capitães da Areia',
-    'O Pequeno Príncipe', '1984', 'Orgulho e Preconceito', 'Cem Anos de Solidão', 'Dom Quixote'
   ];
 
   // Gestos de swipe para navegação entre temas
