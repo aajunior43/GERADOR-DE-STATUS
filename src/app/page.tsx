@@ -134,7 +134,7 @@ export default function Home() {
     return fallbacks[theme.toLowerCase()] || fallbacks.default;
   };
 
-  const downloadImage = () => {
+  const downloadImage = async () => {
     if (!generatedContent) return;
     hapticFeedback.medium();
     
@@ -154,7 +154,21 @@ export default function Home() {
 
     // Aplicar imagem de fundo se disponível
     if (backgroundImage && includeBackground) {
-      await drawBackgroundImage(ctx, width, height, backgroundImage);
+      try {
+        await drawBackgroundImage(ctx, width, height, backgroundImage);
+      } catch (error) {
+        console.warn('Erro ao aplicar imagem de fundo, usando gradiente:', error);
+        // Fallback para gradiente se imagem falhar
+        const gradient = ctx.createLinearGradient(0, 0, width, height);
+        const baseColor = generatedContent.backgroundColor;
+        gradient.addColorStop(0, adjustBrightness(baseColor, 20));
+        gradient.addColorStop(0.2, adjustBrightness(baseColor, 10));
+        gradient.addColorStop(0.5, baseColor);
+        gradient.addColorStop(0.8, adjustBrightness(baseColor, -10));
+        gradient.addColorStop(1, adjustBrightness(baseColor, -25));
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, width, height);
+      }
     } else {
       // Background com gradiente melhorado (fallback)
       const gradient = ctx.createLinearGradient(0, 0, width, height);
@@ -168,8 +182,11 @@ export default function Home() {
       ctx.fillRect(0, 0, width, height);
     }
 
-    // Adicionar elementos decorativos modernos
-    drawDecorativeElements(ctx, width, height, baseColor);
+    // Adicionar elementos decorativos modernos (apenas se não houver imagem de fundo)
+    if (!backgroundImage || !includeBackground) {
+      const baseColor = generatedContent.backgroundColor;
+      drawDecorativeElements(ctx, width, height, baseColor);
+    }
 
     // Vinheta melhorada
     if (includeVignette) {
