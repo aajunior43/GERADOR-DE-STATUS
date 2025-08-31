@@ -6,7 +6,6 @@ import { Sparkles, Menu, X, Home, Plus, History, Heart, User, Settings, Moon, Su
 const EnhancedHeader = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [darkMode, setDarkMode] = useState(true);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,128 +23,80 @@ const EnhancedHeader = () => {
     { label: 'Favoritos', href: '/favorites', icon: Heart },
   ];
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    // Aqui você pode adicionar a lógica para mudar o tema
-  };
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled 
-        ? 'glass-effect border-b border-glass backdrop-blur-xl' 
-        : 'bg-transparent'
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled 
+        ? 'bg-white/95 backdrop-blur-md shadow-sm border-b border-gray-200' 
+        : 'bg-white/80 backdrop-blur-sm'
       }`}
     >
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          {/* Logo Aprimorado */}
+          {/* Logo */}
           <div className="flex items-center space-x-3 cursor-pointer group">
-            <div className="relative p-3 rounded-2xl bg-gradient-primary shadow-glow-blue transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
-              <Sparkles className="h-7 w-7 text-white animate-pulse" />
-              <div className="absolute inset-0 rounded-2xl bg-gradient-primary opacity-50 blur-md -z-10"></div>
+            <div className="p-2 rounded-xl bg-blue-600 transition-all duration-200 group-hover:bg-blue-700">
+              <Sparkles className="h-6 w-6 text-white" />
             </div>
-            <div className="transition-all duration-300 group-hover:translate-x-1">
-              <h1 className="text-2xl font-bold text-white-pure">
-                Status<span className="text-gradient-primary">AI</span>
+            <div>
+              <h1 className="text-xl font-bold text-gray-900">
+                Status<span className="text-blue-600">AI</span>
               </h1>
-              <p className="text-xs text-gray-medium tracking-wider uppercase">Creator Studio</p>
             </div>
           </div>
 
-          {/* Desktop Navigation Melhorado */}
-          <div className="hidden md:flex items-center space-x-2">
-            {navItems.map((item, index) => {
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-1">
+            {navItems.map((item) => {
               const Icon = item.icon;
               return (
                 <a
                   key={item.label}
                   href={item.href}
-                  className="group relative flex items-center space-x-2 px-5 py-3 text-gray-light hover:text-white transition-all duration-300 font-medium rounded-2xl hover:bg-white/5 active:scale-95"
-                  style={{ animationDelay: `${index * 100}ms` }}
+                  className="flex items-center space-x-2 px-4 py-2 text-gray-600 hover:text-gray-900 transition-colors duration-200 font-medium rounded-lg hover:bg-gray-100"
                 >
-                  <Icon className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
-                  <span className="relative">
-                    {item.label}
-                    <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-primary rounded-full transition-all duration-300 group-hover:w-full"></div>
-                  </span>
+                  <Icon className="h-4 w-4" />
+                  <span>{item.label}</span>
                 </a>
               );
             })}
-            
-            {/* Toggle Modo Escuro Aprimorado */}
-            <button
-              onClick={toggleDarkMode}
-              className="group p-3 rounded-2xl text-gray-light hover:text-white transition-all duration-300 hover:bg-white/5 active:scale-90 relative overflow-hidden"
-            >
-              <div className="relative z-10">
-                {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-              </div>
-              <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"></div>
-            </button>
           </div>
 
-          {/* Mobile Menu Button Aprimorado */}
+          {/* Mobile Menu Button */}
           <button
-            className="md:hidden group relative p-3 rounded-2xl text-gray-light hover:text-white transition-all duration-300 hover:bg-white/10 active:scale-90"
+            className="md:hidden p-2 rounded-lg text-gray-600 hover:text-gray-900 transition-colors duration-200 hover:bg-gray-100"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
-            <div className="relative z-10">
-              <div className={`transition-all duration-300 ${isMobileMenuOpen ? 'rotate-180 scale-90' : ''}`}>
-                {isMobileMenuOpen ? (
-                  <X className="h-6 w-6" />
-                ) : (
-                  <Menu className="h-6 w-6" />
-                )}
-              </div>
-            </div>
-            <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"></div>
+            {isMobileMenuOpen ? (
+              <X className="h-6 w-6" />
+            ) : (
+              <Menu className="h-6 w-6" />
+            )}
           </button>
         </div>
 
-        {/* Mobile Menu Melhorado */}
+        {/* Mobile Menu */}
         <div
-          className={`md:hidden transition-all duration-500 ease-in-out overflow-hidden ${
+          className={`md:hidden transition-all duration-300 ease-in-out overflow-hidden ${
             isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
           }`}
         >
-          <div className="glass-card m-4 p-6 border border-glass">
-            <div className="space-y-2">
-              {navItems.map((item, index) => {
+          <div className="bg-white border-t border-gray-200 mx-4 my-2 rounded-lg shadow-sm">
+            <div className="p-4 space-y-2">
+              {navItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <a
                     key={item.label}
                     href={item.href}
-                    className="group flex items-center space-x-4 px-4 py-4 text-gray-light hover:text-white transition-all duration-300 font-medium rounded-xl hover:bg-white/5 active:scale-95"
+                    className="flex items-center space-x-3 px-3 py-3 text-gray-600 hover:text-gray-900 transition-colors duration-200 font-medium rounded-lg hover:bg-gray-50"
                     onClick={() => setIsMobileMenuOpen(false)}
-                    style={{ animationDelay: `${index * 50}ms` }}
                   >
-                    <div className="p-2 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors duration-300">
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <span className="flex-1">{item.label}</span>
-                    <div className="w-2 h-2 rounded-full bg-gradient-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                    <Icon className="h-4 w-4" />
+                    <span>{item.label}</span>
                   </a>
                 );
               })}
-              
-              {/* Divisor */}
-              <div className="my-4 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-              
-              {/* Toggle Modo Escuro Mobile */}
-              <button
-                onClick={() => {
-                  toggleDarkMode();
-                  setIsMobileMenuOpen(false);
-                }}
-                className="group flex items-center space-x-4 w-full px-4 py-4 text-gray-light hover:text-white transition-all duration-300 font-medium rounded-xl hover:bg-white/5 active:scale-95"
-              >
-                <div className="p-2 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors duration-300">
-                  {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                </div>
-                <span className="flex-1">{darkMode ? 'Modo Claro' : 'Modo Escuro'}</span>
-                <div className="w-2 h-2 rounded-full bg-gradient-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-              </button>
             </div>
           </div>
         </div>

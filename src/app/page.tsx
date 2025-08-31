@@ -165,16 +165,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-purple-900/20"></div>
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-20 left-10 w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-        <div className="absolute top-40 right-20 w-1 h-1 bg-purple-400 rounded-full animate-ping"></div>
-        <div className="absolute bottom-40 left-20 w-3 h-3 bg-pink-400 rounded-full animate-bounce"></div>
-      </div>
-      <div className="absolute inset-0 bg-black/20"></div>
-      
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 relative">
       <div className="relative z-10">
         <EnhancedHeader />
         
@@ -183,26 +174,14 @@ export default function Home() {
           <div className="container mx-auto px-6 max-w-7xl">
             
             {/* Hero Section */}
-            <section className="text-center py-16 lg:py-24">
-              <div className="max-w-4xl mx-auto space-y-8">
-                <div className="relative group">
-                  <div className="absolute -inset-6 bg-gradient-primary rounded-3xl blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-1000"></div>
-                  <h1 className="relative text-5xl md:text-7xl lg:text-8xl font-light text-white tracking-wide bg-gradient-to-r from-white via-blue-200 to-purple-200 bg-clip-text text-transparent">
-                    Status AI
-                  </h1>
-                </div>
+            <section className="text-center py-12 lg:py-16">
+              <div className="max-w-3xl mx-auto space-y-6">
+                <h1 className="text-4xl md:text-6xl font-bold text-gray-900 tracking-tight">
+                  Status AI
+                </h1>
                 
-                <div className="flex items-center justify-center space-x-6">
-                  <div className="w-20 h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent"></div>
-                  <div className="p-2 rounded-full bg-gradient-primary/30">
-                    <div className="w-2 h-2 bg-gradient-primary rounded-full animate-pulse"></div>
-                  </div>
-                  <div className="w-20 h-px bg-gradient-to-l from-transparent via-purple-400 to-transparent"></div>
-                </div>
-                
-                <p className="text-xl md:text-2xl lg:text-3xl text-white/90 font-medium max-w-3xl mx-auto leading-relaxed">
-                  Transforme suas ideias em <span className="text-gradient-primary">status incríveis</span> com 
-                  <span className="text-gradient-secondary"> Inteligência Artificial</span>
+                <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
+                  Crie status profissionais com inteligência artificial
                 </p>
               </div>
             </section>
@@ -213,126 +192,78 @@ export default function Home() {
                 <div className="grid lg:grid-cols-5 gap-8 lg:gap-16 items-start">
                   
                   {/* Controls - 3 columns */}
-                  <div className="lg:col-span-3 space-y-8">
+                  <div className="lg:col-span-3 space-y-6">
                     
                     {/* Input */}
-                    <div className="glass-card p-6 lg:p-10 border border-glass">
-                      <div className="space-y-6">
-                        <h2 className="text-xl lg:text-2xl font-semibold text-center text-gradient-primary">
-                          ✨ Qual o tema do seu status?
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                      <div className="space-y-4">
+                        <h2 className="text-lg font-semibold text-center text-gray-900">
+                          Qual o tema do seu status?
                         </h2>
-                        <div className="relative group">
-                          <div className="absolute -inset-2 bg-gradient-primary rounded-3xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity duration-500"></div>
-                          <input
-                            type="text"
-                            placeholder="Ex: motivação, amor, sucesso, família..."
-                            value={theme}
-                            onChange={(e) => setTheme(e.target.value)}
-                            onKeyDown={(e) => e.key === 'Enter' && generateStatus()}
-                            className="relative w-full px-6 py-4 lg:py-6 input-modern text-white placeholder-white/50 text-base lg:text-lg text-center"
-                            style={{ fontSize: '16px' }}
-                          />
-                        </div>
+                        <input
+                          type="text"
+                          placeholder="Ex: motivação, amor, sucesso, família..."
+                          value={theme}
+                          onChange={(e) => setTheme(e.target.value)}
+                          onKeyDown={(e) => e.key === 'Enter' && generateStatus()}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-900 placeholder-gray-500 text-center"
+                        />
                       </div>
                     </div>
                     
                     {/* Options */}
-                    <div className="glass-card p-6 lg:p-10 border border-glass">
-                      <div className="space-y-6">
-                        <h3 className="text-lg lg:text-xl font-semibold text-center text-gradient-secondary">
-                          🎨 Personalizar
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+                      <div className="space-y-4">
+                        <h3 className="text-lg font-semibold text-center text-gray-900">
+                          Personalizar
                         </h3>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-3 gap-4">
                           
                           {/* Emojis */}
-                          <label className="group flex flex-col items-center gap-4 cursor-pointer transform hover:scale-105 transition-all duration-300">
-                            <div className="relative">
-                              <input type="checkbox" checked={includeEmojis} onChange={(e) => setIncludeEmojis(e.target.checked)} className="sr-only" />
-                              <div className={`w-16 h-16 lg:w-20 lg:h-20 rounded-3xl border-2 transition-all duration-500 ${
-                                includeEmojis ? 'bg-gradient-secondary border-pink-300 shadow-glow-purple scale-110' : 'glass-card border-glass group-hover:border-primary/50'
-                              }`}>
-                                {includeEmojis && (
-                                  <svg className="w-8 h-8 lg:w-10 lg:h-10 text-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                  </svg>
-                                )}
-                              </div>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-2xl mb-1">😊</div>
-                              <span className="text-sm text-white/80 group-hover:text-white font-medium">Emojis</span>
-                            </div>
+                          <label className="flex flex-col items-center gap-2 cursor-pointer p-3 rounded-lg border-2 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50" 
+                                 style={{ borderColor: includeEmojis ? '#3B82F6' : '#E5E7EB', backgroundColor: includeEmojis ? '#EFF6FF' : 'transparent' }}>
+                            <input type="checkbox" checked={includeEmojis} onChange={(e) => setIncludeEmojis(e.target.checked)} className="sr-only" />
+                            <div className="text-2xl">😊</div>
+                            <span className="text-sm font-medium text-gray-700">Emojis</span>
                           </label>
                           
                           {/* Hashtags */}
-                          <label className="group flex flex-col items-center gap-4 cursor-pointer transform hover:scale-105 transition-all duration-300">
-                            <div className="relative">
-                              <input type="checkbox" checked={includeHashtags} onChange={(e) => setIncludeHashtags(e.target.checked)} className="sr-only" />
-                              <div className={`w-16 h-16 lg:w-20 lg:h-20 rounded-3xl border-2 transition-all duration-500 ${
-                                includeHashtags ? 'bg-gradient-primary border-blue-300 shadow-glow-blue scale-110' : 'glass-card border-glass group-hover:border-primary/50'
-                              }`}>
-                                {includeHashtags && (
-                                  <svg className="w-8 h-8 lg:w-10 lg:h-10 text-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                  </svg>
-                                )}
-                              </div>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-2xl mb-1">#️⃣</div>
-                              <span className="text-sm text-white/80 group-hover:text-white font-medium">Hashtags</span>
-                            </div>
+                          <label className="flex flex-col items-center gap-2 cursor-pointer p-3 rounded-lg border-2 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50"
+                                 style={{ borderColor: includeHashtags ? '#3B82F6' : '#E5E7EB', backgroundColor: includeHashtags ? '#EFF6FF' : 'transparent' }}>
+                            <input type="checkbox" checked={includeHashtags} onChange={(e) => setIncludeHashtags(e.target.checked)} className="sr-only" />
+                            <div className="text-2xl">#️⃣</div>
+                            <span className="text-sm font-medium text-gray-700">Hashtags</span>
                           </label>
 
                           {/* Vinheta */}
-                          <label className="group flex flex-col items-center gap-4 cursor-pointer transform hover:scale-105 transition-all duration-300">
-                            <div className="relative">
-                              <input type="checkbox" checked={includeVignette} onChange={(e) => setIncludeVignette(e.target.checked)} className="sr-only" />
-                              <div className={`w-16 h-16 lg:w-20 lg:h-20 rounded-3xl border-2 transition-all duration-500 ${
-                                includeVignette ? 'bg-gradient-to-br from-gray-600 to-gray-800 border-gray-400 scale-110' : 'glass-card border-glass group-hover:border-primary/50'
-                              }`}>
-                                {includeVignette && (
-                                  <svg className="w-8 h-8 lg:w-10 lg:h-10 text-white absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                  </svg>
-                                )}
-                              </div>
-                            </div>
-                            <div className="text-center">
-                              <div className="text-2xl mb-1">🎞️</div>
-                              <span className="text-sm text-white/80 group-hover:text-white font-medium">Vinheta</span>
-                            </div>
+                          <label className="flex flex-col items-center gap-2 cursor-pointer p-3 rounded-lg border-2 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50"
+                                 style={{ borderColor: includeVignette ? '#3B82F6' : '#E5E7EB', backgroundColor: includeVignette ? '#EFF6FF' : 'transparent' }}>
+                            <input type="checkbox" checked={includeVignette} onChange={(e) => setIncludeVignette(e.target.checked)} className="sr-only" />
+                            <div className="text-2xl">🎞️</div>
+                            <span className="text-sm font-medium text-gray-700">Vinheta</span>
                           </label>
                         </div>
                       </div>
                     </div>
                     
                     {/* Buttons */}
-                    <div className="space-y-6">
-                      <div className="relative">
-                        <div className="absolute -inset-3 bg-gradient-primary rounded-3xl blur-xl opacity-30 animate-pulse"></div>
-                        <button
-                          onClick={generateStatus}
-                          disabled={!theme.trim() || isGenerating}
-                          className="relative w-full py-5 lg:py-6 btn-primary text-white font-bold rounded-3xl disabled:opacity-30 text-lg lg:text-xl overflow-hidden group"
-                        >
-                          <div className="absolute inset-0 shimmer-effect"></div>
-                          <div className="relative flex items-center justify-center gap-3">
-                            {isGenerating && <div className="w-5 h-5 lg:w-6 lg:h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
-                            <span>{isGenerating ? '🤖 Criando com IA...' : '✨ Gerar Status'}</span>
-                          </div>
-                        </button>
-                      </div>
+                    <div className="space-y-4">
+                      <button
+                        onClick={generateStatus}
+                        disabled={!theme.trim() || isGenerating}
+                        className="w-full py-3 px-6 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white font-semibold rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
+                      >
+                        {isGenerating && <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>}
+                        <span>{isGenerating ? 'Gerando...' : 'Gerar Status'}</span>
+                      </button>
                       
                       {generatedContent && (
                         <button
                           onClick={downloadImage}
-                          className="w-full py-4 lg:py-5 btn-secondary text-white font-semibold rounded-3xl text-base lg:text-lg overflow-hidden group"
+                          className="w-full py-3 px-6 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors duration-200 flex items-center justify-center gap-2"
                         >
-                          <div className="flex items-center justify-center gap-2">
-                            <span className="text-xl animate-bounce">📱</span>
-                            <span>Baixar Imagem HD</span>
-                          </div>
+                          <span>📱</span>
+                          <span>Baixar Imagem</span>
                         </button>
                       )}
                     </div>
@@ -340,14 +271,13 @@ export default function Home() {
                   
                   {/* Preview - 2 columns */}
                   <div className="lg:col-span-2">
-                    <div className="sticky top-32 space-y-6">
-                      <h2 className="text-lg lg:text-xl font-semibold text-center text-gradient-accent">📱 Preview</h2>
+                    <div className="sticky top-32 space-y-4">
+                      <h2 className="text-lg font-semibold text-center text-gray-900">Preview</h2>
                       
                       <div className="flex justify-center">
-                        <div className="relative group">
-                          <div className="absolute -inset-6 bg-gradient-primary rounded-3xl blur-xl opacity-15 group-hover:opacity-30 transition-opacity duration-1000"></div>
+                        <div className="relative">
                           <div 
-                            className="relative w-64 lg:w-72 aspect-[9/16] rounded-3xl overflow-hidden shadow-glass border border-glass hover:scale-105 transition-all duration-500 cursor-pointer"
+                            className="w-64 lg:w-80 aspect-[9/16] rounded-2xl overflow-hidden shadow-lg border border-gray-200 cursor-pointer transition-transform duration-200 hover:scale-105"
                             onClick={() => generatedContent && downloadImage()}
                           >
                             <div 
@@ -367,32 +297,24 @@ export default function Home() {
                               )}
                               
                               {isGenerating ? (
-                                <div className="flex flex-col items-center space-y-4">
-                                  <div className="relative">
-                                    <div className="w-12 h-12 border-2 border-current/20 rounded-full"></div>
-                                    <div className="absolute top-0 left-0 w-12 h-12 border-2 border-transparent border-t-current rounded-full animate-spin"></div>
-                                  </div>
+                                <div className="flex flex-col items-center justify-center space-y-4">
+                                  <div className="w-8 h-8 border-2 border-current/30 border-t-current rounded-full animate-spin"></div>
                                   <div className="text-center">
-                                    <div className="text-base mb-2">Criando com IA</div>
-                                    <div className="flex justify-center gap-1">
-                                      <div className="w-2 h-2 bg-current/60 rounded-full animate-pulse"></div>
-                                      <div className="w-2 h-2 bg-current/60 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                                      <div className="w-2 h-2 bg-current/60 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
-                                    </div>
+                                    <div className="text-sm">Gerando...</div>
                                   </div>
                                 </div>
                               ) : generatedContent ? (
-                                <p className="font-medium leading-relaxed whitespace-pre-line">
+                                <p className="font-medium leading-relaxed whitespace-pre-line text-sm">
                                   {generatedContent.text}
                                 </p>
                               ) : (
-                                <div className="opacity-60 text-center space-y-4">
-                                  <div className="w-16 h-16 border-2 border-current/30 rounded-full flex items-center justify-center mx-auto">
-                                    <div className="w-6 h-6 bg-current/50 rounded-full animate-pulse"></div>
+                                <div className="text-center space-y-4 opacity-60">
+                                  <div className="w-12 h-12 border-2 border-current/30 rounded-full flex items-center justify-center mx-auto">
+                                    <div className="w-4 h-4 bg-current/50 rounded-full"></div>
                                   </div>
                                   <div>
-                                    <div className="text-lg mb-2">Preview</div>
-                                    <div className="text-sm opacity-70">Digite um tema acima</div>
+                                    <div className="text-base mb-1">Preview</div>
+                                    <div className="text-sm">Digite um tema acima</div>
                                   </div>
                                 </div>
                               )}
@@ -402,19 +324,17 @@ export default function Home() {
                       </div>
                       
                       {generatedContent && (
-                        <div className="glass-card p-4 border border-glass text-center">
-                          <div className="flex items-center justify-center gap-2 text-white/80 text-sm">
-                            <div className="w-2 h-2 bg-gradient-primary rounded-full animate-pulse"></div>
-                            <span className="font-medium text-gradient-primary">Fonte:</span> 
-                            <span>{generatedContent.fontFamily}</span>
+                        <div className="bg-gray-50 rounded-lg p-3 text-center">
+                          <div className="text-sm text-gray-600">
+                            <span className="font-medium">Fonte:</span> {generatedContent.fontFamily}
                           </div>
                         </div>
                       )}
                       
                       {/* Mobile Quick Themes - Only mobile */}
                       <div className="lg:hidden">
-                        <div className="glass-card p-4 border border-glass">
-                          <h3 className="text-base font-semibold text-center text-gradient-secondary mb-4">🎯 Temas Rápidos</h3>
+                        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+                          <h3 className="text-base font-semibold text-center text-gray-900 mb-4">Temas Rápidos</h3>
                           <div className="grid grid-cols-2 gap-3">
                             {quickThemes.slice(0, 6).map((category, index) => (
                               <button
@@ -425,7 +345,7 @@ export default function Home() {
                                   setTimeout(() => generateStatus(), 100);
                                 }}
                                 disabled={isGenerating}
-                                className="glass-button py-3 px-4 text-sm rounded-xl text-white/70 hover:text-white hover:bg-white/10 active:scale-95 transition-all"
+                                className="py-2 px-3 text-sm border border-gray-300 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-colors duration-200 text-gray-700"
                               >
                                 {category}
                               </button>
