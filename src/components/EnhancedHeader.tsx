@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, Menu, X, Home, Plus, History, Heart, User, Settings, Moon, Sun } from 'lucide-react';
+import { Sparkles, Menu, X, Home, Plus, History, Heart, User, Settings, Moon, Sun, MessageCircle } from 'lucide-react';
 
 const EnhancedHeader = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -23,6 +23,7 @@ const EnhancedHeader = () => {
     { label: 'Criar', href: '/#creator-section', icon: Plus },
     { label: 'Histórico', href: '/history', icon: History },
     { label: 'Favoritos', href: '/favorites', icon: Heart },
+    { label: 'WhatsApp', href: '/whatsapp', icon: MessageCircle },
   ];
 
   const toggleDarkMode = () => {

@@ -5,6 +5,7 @@ import { useGeminiService } from '@/services/geminiService';
 import { useSwipe } from '@/hooks/useSwipe';
 import { hapticFeedback } from '@/utils/haptics';
 import { useToast } from '@/components/Toast';
+import EnhancedHeader from '@/components/EnhancedHeader';
 
 export default function Home() {
   const [theme, setTheme] = useState('');
@@ -424,8 +425,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-black">
+      <EnhancedHeader />
       {/* Container principal responsivo */}
-      <div className="max-w-sm mx-auto px-4 py-6 space-y-6 md:max-w-4xl md:px-8 md:py-12">
+      <div className="max-w-sm mx-auto px-4 py-6 space-y-6 md:max-w-4xl md:px-8 md:py-12 pt-24">
         
         {/* Layout Desktop - Grid com 2 colunas */}
         <div className="hidden md:grid md:grid-cols-2 md:gap-12 md:items-start">
