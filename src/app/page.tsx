@@ -167,10 +167,8 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-blue-50 relative">
       <div className="relative z-10">
-        <EnhancedHeader />
-        
         {/* Main Container */}
-        <main className="pt-28 pb-20">
+        <main className="py-8">
           <div className="container mx-auto px-6 max-w-7xl">
             
             {/* Hero Section */}
