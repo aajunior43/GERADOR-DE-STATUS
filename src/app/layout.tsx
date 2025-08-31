@@ -60,7 +60,6 @@ export const metadata: Metadata = {
     "design",
     "redes sociais",
     "Instagram",
-    "WhatsApp",
     "stories",
     "Gemini AI"
   ],

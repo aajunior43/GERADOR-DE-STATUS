@@ -11,6 +11,5 @@ vercel --prod
 
 echo.
 echo ✅ Deploy concluído!
-echo 📱 Agora configure o webhook na API WhatsApp com a URL fornecida pelo Vercel
 echo.
 pause
