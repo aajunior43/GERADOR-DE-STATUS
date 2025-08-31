@@ -1,7 +1,9 @@
-interface WhatsAppMessage {
-  phone: string;
-  message: string;
-  image?: string;
+interface WhatsAppSendRequest {
+  token: string;
+  uuid: string;
+  number: string;
+  content: string;
+  delay?: number;
 }
 
 interface WhatsAppWebhook {
@@ -12,65 +14,86 @@ interface WhatsAppWebhook {
 
 class WhatsAppService {
   private baseUrl = 'https://api-whatsapp.api-alisson.com.br/api/v1';
-  private token = '4h8g8JO7vtQbXSvJW61WtdAemw6PaQ5m';
+  private token = '4n8g8JO7vtQbXSvJW61WtdAemw6PaQ5m';
+  private uuid = process.env.WHATSAPP_UUID || '5d8b1d72-8b27-4910-990a-701a0be2b9d5'; // UUID da instância
 
   /**
-   * Envia uma mensagem de texto via WhatsApp
+   * Envia uma mensagem de texto via WhatsApp usando o formato correto da API
    */
-  async sendTextMessage(phone: string, message: string): Promise<boolean> {
+  async sendTextMessage(phone: string, message: string, delay: number = 2500): Promise<boolean> {
     try {
+      console.log('📤 Enviando mensagem de texto para:', phone);
+      
+      const payload: WhatsAppSendRequest = {
+        token: this.token,
+        uuid: this.uuid,
+        number: phone,
+        content: message,
+        delay: delay
+      };
+
+      console.log('📤 Payload da mensagem:', payload);
+
       const response = await fetch(`${this.baseUrl}/send-text`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.token}`
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          phone,
-          message
-        })
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('❌ Erro HTTP:', response.status, errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
-      console.log('Mensagem enviada com sucesso:', result);
+      console.log('✅ Mensagem enviada com sucesso:', result);
       return true;
     } catch (error) {
-      console.error('Erro ao enviar mensagem WhatsApp:', error);
+      console.error('❌ Erro ao enviar mensagem WhatsApp:', error);
       return false;
     }
   }
 
   /**
-   * Envia uma imagem via WhatsApp
+   * Envia uma imagem via WhatsApp usando a estrutura correta da API
    */
   async sendImageMessage(phone: string, imageUrl: string, caption?: string): Promise<boolean> {
     try {
-      const response = await fetch(`${this.baseUrl}/send-image`, {
+      console.log('📤 Enviando imagem para:', phone, 'URL:', imageUrl);
+      
+      const payload = {
+        token: this.token,
+        uuid: this.uuid,
+        number: phone,
+        media: imageUrl,
+        mediatype: 'image',
+        caption: caption || ''
+      };
+
+      console.log('📤 Payload da imagem:', payload);
+
+      const response = await fetch(`${this.baseUrl}/send-media`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.token}`
+          'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          phone,
-          image: imageUrl,
-          caption: caption || ''
-        })
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        const errorText = await response.text();
+        console.error('❌ Erro HTTP ao enviar imagem:', response.status, errorText);
+        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
-      console.log('Imagem enviada com sucesso:', result);
+      console.log('✅ Imagem enviada com sucesso:', result);
       return true;
     } catch (error) {
-      console.error('Erro ao enviar imagem WhatsApp:', error);
+      console.error('❌ Erro ao enviar imagem WhatsApp:', error);
       return false;
     }
   }
@@ -80,21 +103,31 @@ class WhatsAppService {
    */
   async checkConnection(): Promise<boolean> {
     try {
+      console.log('🔍 Verificando conexão da API...');
+      
+      const payload = {
+        token: this.token,
+        uuid: this.uuid
+      };
+
       const response = await fetch(`${this.baseUrl}/status`, {
-        method: 'GET',
+        method: 'POST',
         headers: {
-          'Authorization': `Bearer ${this.token}`
-        }
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
       });
 
       if (!response.ok) {
+        console.error('❌ Erro ao verificar status:', response.status);
         return false;
       }
 
       const result = await response.json();
-      return result.status === 'connected';
+      console.log('📊 Status da conexão:', result);
+      return result.status === 'connected' || result.connected === true;
     } catch (error) {
-      console.error('Erro ao verificar conexão:', error);
+      console.error('❌ Erro ao verificar conexão:', error);
       return false;
     }
   }
@@ -210,6 +243,32 @@ class WhatsAppService {
     
     console.log('📞 Telefone formatado:', formatted);
     return formatted;
+  }
+
+  /**
+   * Configura o UUID da instância
+   */
+  setUuid(uuid: string): void {
+    this.uuid = uuid;
+    console.log('🔧 UUID configurado:', uuid);
+  }
+
+  /**
+   * Retorna o UUID atual
+   */
+  getUuid(): string {
+    return this.uuid;
+  }
+
+  /**
+   * Retorna informações da configuração atual
+   */
+  getConfig(): { baseUrl: string; token: string; uuid: string } {
+    return {
+      baseUrl: this.baseUrl,
+      token: this.token.substring(0, 10) + '...',
+      uuid: this.uuid
+    };
   }
 }
 

@@ -2,18 +2,22 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET() {
   const baseUrl = 'https://api-whatsapp.api-alisson.com.br/api/v1';
-  const token = '4h8g8JO7vtQbXSvJW61WtdAemw6PaQ5m';
+  const token = '4n8g8JO7vtQbXSvJW61WtdAemw6PaQ5m';
+  const uuid = '5d8b1d72-8b27-4910-990a-701a0be2b9d5';
 
   try {
     console.log('🔍 Testando conexão com API WhatsApp...');
     
     // Testar status da API
     const statusResponse = await fetch(`${baseUrl}/status`, {
-      method: 'GET',
+      method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
-      }
+      },
+      body: JSON.stringify({
+        token: token,
+        uuid: uuid
+      })
     });
 
     console.log('📡 Status da resposta:', statusResponse.status);
@@ -35,12 +39,14 @@ export async function GET() {
     const sendResponse = await fetch(`${baseUrl}/send-text`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        phone: testPhone,
-        message: testMessage
+        token: token,
+        uuid: uuid,
+        number: testPhone,
+        content: testMessage,
+        delay: 2500
       })
     });
 
@@ -58,6 +64,7 @@ export async function GET() {
       timestamp: new Date().toISOString(),
       api_url: baseUrl,
       token_length: token.length,
+      uuid: uuid,
       status_check: {
         status_code: statusResponse.status,
         status_ok: statusResponse.ok,
@@ -94,19 +101,22 @@ export async function POST(request: NextRequest) {
     }
 
     const baseUrl = 'https://api-whatsapp.api-alisson.com.br/api/v1';
-    const token = '4h8g8JO7vtQbXSvJW61WtdAemw6PaQ5m';
+    const token = '4n8g8JO7vtQbXSvJW61WtdAemw6PaQ5m';
+    const uuid = '5d8b1d72-8b27-4910-990a-701a0be2b9d5';
 
     console.log('📤 Enviando mensagem personalizada:', { phone, message });
     
     const response = await fetch(`${baseUrl}/send-text`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        phone,
-        message
+        token: token,
+        uuid: uuid,
+        number: phone,
+        content: message,
+        delay: 2500
       })
     });
 

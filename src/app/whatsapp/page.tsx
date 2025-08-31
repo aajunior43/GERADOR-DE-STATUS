@@ -29,23 +29,23 @@ export default function WhatsAppPage() {
               </div>
               
               <div>
-                <h3 className="font-semibold text-gray-800">2. Recebimento de mensagens</h3>
+                <h3 className="font-semibold text-gray-800">2. Envio do tema</h3>
                 <p className="text-sm">
-                  Quando alguém enviar uma mensagem para o WhatsApp conectado, ela será processada automaticamente.
+                  Qualquer mensagem enviada será tratada como um tema para gerar status (ex: "amor", "motivação", "sucesso").
                 </p>
               </div>
               
               <div>
-                <h3 className="font-semibold text-gray-800">3. Geração de status</h3>
+                <h3 className="font-semibold text-gray-800">3. Geração automática</h3>
                 <p className="text-sm">
-                  O sistema usa IA para gerar um status personalizado baseado no tema enviado.
+                  A IA processa o tema e gera automaticamente um status personalizado com imagem e texto.
                 </p>
               </div>
               
               <div>
-                <h3 className="font-semibold text-gray-800">4. Resposta automática</h3>
+                <h3 className="font-semibold text-gray-800">4. Resposta instantânea</h3>
                 <p className="text-sm">
-                  O status gerado é enviado de volta via WhatsApp como imagem com legenda.
+                  O status é enviado de volta automaticamente como imagem com legenda para o mesmo número.
                 </p>
               </div>
             </div>

@@ -59,7 +59,7 @@ export default function WhatsAppInterface() {
   };
 
   const sendTestMessage = async () => {
-    setMessage('ajuda');
+    setMessage('motivação');
     setPhone('5511999999999'); // Número de teste
   };
 
@@ -149,10 +149,11 @@ export default function WhatsAppInterface() {
       <div className="mt-4 p-4 bg-yellow-50 rounded-lg">
         <h3 className="text-sm font-medium text-yellow-800 mb-2">Como usar:</h3>
         <ul className="text-xs text-yellow-700 space-y-1">
-          <li>• Envie "ajuda" para ver comandos disponíveis</li>
-          <li>• Envie "status" para verificar se estou online</li>
-          <li>• Envie qualquer tema para gerar um status personalizado</li>
-          <li>• Exemplos: motivação, amor, sucesso, fé, paz</li>
+          <li>• <strong>Envie qualquer tema</strong> e receba um status personalizado automaticamente</li>
+          <li>• Exemplos: motivação, amor, sucesso, fé, paz, família, trabalho, felicidade</li>
+          <li>• O bot gerará uma imagem com texto personalizado baseado no tema</li>
+          <li>• Funciona com qualquer palavra, frase ou conceito como tema</li>
+          <li>• Resposta automática em segundos!</li>
         </ul>
       </div>
     </div>

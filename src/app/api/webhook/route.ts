@@ -29,44 +29,10 @@ export async function POST(request: NextRequest) {
 
     const formattedPhone = whatsappService.formatPhone(phone);
 
-    // Verificar se é um comando válido
-    const command = message.toLowerCase().trim();
+    // Tratar toda mensagem como tema para gerar status
+    const theme = message.trim();
     
-    if (command === 'ajuda' || command === 'help') {
-      const helpMessage = `🤖 *Gerador de Status AI*
-
-Para gerar um status, envie o tema desejado. Exemplos:
-
-• *motivação* - Status motivacional
-• *amor* - Status romântico  
-• *sucesso* - Status de sucesso
-• *fé* - Status religioso
-• *paz* - Status de paz
-• *família* - Status familiar
-• *trabalho* - Status profissional
-
-*Comandos especiais:*
-• *ajuda* - Mostra esta mensagem
-• *status* - Verifica se estou online
-
-Envie qualquer tema e eu criarei um status personalizado para você! ✨`;
-
-      await whatsappService.sendTextMessage(formattedPhone, helpMessage);
-      return NextResponse.json({ success: true });
-    }
-
-    if (command === 'status') {
-      const isConnected = await whatsappService.checkConnection();
-      const statusMessage = isConnected 
-        ? '✅ Estou online e funcionando perfeitamente! Envie um tema para gerar seu status.' 
-        : '❌ Estou offline no momento. Tente novamente em alguns minutos.';
-      
-      await whatsappService.sendTextMessage(formattedPhone, statusMessage);
-      return NextResponse.json({ success: true });
-    }
-
-    // Gerar status com IA
-    console.log('🎯 Gerando status para tema:', message, 'para número:', formattedPhone);
+    console.log('🎯 Gerando status para tema:', theme, 'para número:', formattedPhone);
     
     // Enviar mensagem de processamento
     console.log('📤 Enviando mensagem de processamento...');
@@ -74,9 +40,10 @@ Envie qualquer tema e eu criarei um status personalizado para você! ✨`;
     console.log('📤 Mensagem de processamento enviada:', processingMessageSent);
 
     try {
-      // Gerar conteúdo com IA
+      // Gerar conteúdo com IA usando o tema recebido
+      console.log('🤖 Iniciando geração de status com IA...');
       const statusResponse = await geminiService.generateStatus({
-        theme: message,
+        theme: theme,
         style: 'modern',
         includeEmojis: true,
         includeHashtags: false,
@@ -84,31 +51,56 @@ Envie qualquer tema e eu criarei um status personalizado para você! ✨`;
       });
 
       const { generatedContent, imageUrl } = statusResponse;
+      console.log('✅ Status gerado com sucesso:', { 
+        text: generatedContent.text.substring(0, 50) + '...', 
+        imageUrl: imageUrl.substring(0, 50) + '...' 
+      });
 
-      // Enviar imagem do status
-      const caption = `✨ *Status Gerado*\n\n${generatedContent.text}\n\n🎯 Tema: ${message}\n🤖 Gerado por IA`;
+      // Preparar mensagem com o status gerado
+      const caption = `✨ *Status Personalizado*\n\n${generatedContent.text}\n\n🎯 Tema: ${theme}\n🤖 Criado por IA`;
 
+      // Tentar enviar imagem com legenda
+      console.log('📤 Enviando imagem do status...');
       const imageSent = await whatsappService.sendImageMessage(formattedPhone, imageUrl, caption);
 
-      if (!imageSent) {
-        // Fallback: enviar apenas o texto
-        const textMessage = `✨ *Status Gerado*\n\n${generatedContent.text}\n\n🎯 Tema: ${message}\n🤖 Gerado por IA`;
+      if (imageSent) {
+        console.log('✅ Imagem enviada com sucesso para:', formattedPhone);
+      } else {
+        // Fallback: enviar apenas o texto se a imagem falhar
+        console.log('⚠️ Falha no envio da imagem, enviando apenas texto...');
+        const textMessage = `✨ *Status Personalizado*\n\n${generatedContent.text}\n\n🎯 Tema: ${theme}\n🤖 Criado por IA\n\n💡 _A imagem não pôde ser enviada, mas aqui está seu status!_`;
         await whatsappService.sendTextMessage(formattedPhone, textMessage);
       }
 
-      console.log('Status enviado com sucesso para:', formattedPhone);
-      return NextResponse.json({ success: true });
+      console.log('🎉 Status enviado com sucesso para:', formattedPhone);
+      return NextResponse.json({ 
+        success: true, 
+        theme: theme,
+        phone: formattedPhone,
+        timestamp: new Date().toISOString()
+      });
 
     } catch (error) {
-      console.error('Erro ao gerar status:', error);
+      console.error('❌ Erro ao gerar status:', error);
       
       // Enviar mensagem de erro amigável
-      const errorMessage = `❌ Desculpe, não consegui gerar um status para "${message}" no momento. 
+      const errorMessage = `❌ Ops! Não consegui gerar um status para "${theme}" no momento.
 
-Tente com outro tema ou envie "ajuda" para ver exemplos de temas disponíveis.`;
+🔄 Tente novamente com:
+• Um tema mais específico
+• Palavras simples como: amor, motivação, sucesso, paz
+• Aguarde alguns segundos e tente novamente
+
+🤖 Estou aqui para ajudar!`;
 
       await whatsappService.sendTextMessage(formattedPhone, errorMessage);
-      return NextResponse.json({ success: false, error: 'Erro na geração' }, { status: 500 });
+      return NextResponse.json({ 
+        success: false, 
+        error: 'Erro na geração',
+        theme: theme,
+        phone: formattedPhone,
+        timestamp: new Date().toISOString()
+      }, { status: 500 });
     }
 
   } catch (error) {

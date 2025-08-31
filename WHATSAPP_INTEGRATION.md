@@ -9,10 +9,10 @@ Este projeto foi modificado para integrar com WhatsApp, permitindo que usuários
 - **Processamento inteligente**: Identifica comandos e temas
 - **Validação de números**: Verifica formato de telefone brasileiro
 
-### Comandos Disponíveis
-- `ajuda` ou `help` - Mostra lista de comandos e exemplos
-- `status` - Verifica se o bot está online
-- Qualquer tema - Gera status personalizado (ex: motivação, amor, sucesso)
+### Como Funciona
+- **Envie qualquer tema** - Toda mensagem é tratada como tema para gerar status
+- **Resposta automática** - Bot gera e envia status personalizado instantaneamente
+- **Exemplos de temas**: motivação, amor, sucesso, fé, paz, família, trabalho, felicidade
 
 ### Geração de Status
 - **IA Avançada**: Usa Google Gemini para criar conteúdo único
@@ -25,6 +25,7 @@ Este projeto foi modificado para integrar com WhatsApp, permitindo que usuários
 ```typescript
 Base URL: https://api-whatsapp.api-alisson.com.br/api/v1
 Token: 4h8g8JO7vtQbXSvJW61WtdAemw6PaQ5m
+UUID: Configurar na página /config-whatsapp
 ```
 
 ### 2. Webhook URL
@@ -36,6 +37,7 @@ https://seu-dominio.com/api/webhook
 ### 3. Variáveis de Ambiente
 ```env
 NEXT_PUBLIC_GEMINI_API_KEY=sua_chave_gemini
+WHATSAPP_UUID=seu_uuid_da_instancia
 ```
 
 ## 📁 Estrutura dos Arquivos
@@ -54,9 +56,9 @@ NEXT_PUBLIC_GEMINI_API_KEY=sua_chave_gemini
 ## 🎯 Como Usar
 
 ### Para Usuários
-1. Envie uma mensagem para o WhatsApp conectado
-2. Digite um tema (ex: "motivação", "amor", "sucesso")
-3. Receba um status personalizado gerado por IA
+1. Envie qualquer mensagem com um tema para o WhatsApp conectado
+2. Exemplos: "motivação", "amor", "sucesso", "fé", "paz", "família"
+3. Receba automaticamente um status personalizado com imagem gerado por IA
 
 ### Para Desenvolvedores
 1. Acesse `/whatsapp` para testar a integração
@@ -65,10 +67,10 @@ NEXT_PUBLIC_GEMINI_API_KEY=sua_chave_gemini
 
 ## 🔄 Fluxo de Funcionamento
 
-1. **Recebimento**: Webhook recebe mensagem do WhatsApp
-2. **Validação**: Verifica número e processa comando
-3. **Geração**: IA cria status baseado no tema
-4. **Resposta**: Envia imagem + texto de volta via WhatsApp
+1. **Recebimento**: Webhook recebe qualquer mensagem do WhatsApp
+2. **Processamento**: Trata a mensagem como tema para gerar status
+3. **Geração**: IA cria status personalizado com imagem baseado no tema
+4. **Resposta**: Envia automaticamente imagem + texto para o mesmo número
 
 ## 🛠️ Desenvolvimento
 
@@ -90,13 +92,7 @@ npm start
 
 ## 📱 Exemplos de Uso
 
-### Comandos
-```
-ajuda - Mostra ajuda
-status - Verifica conexão
-```
-
-### Temas
+### Exemplos de Temas
 ```
 motivação - Status motivacional
 amor - Status romântico
@@ -105,7 +101,15 @@ fé - Status religioso
 paz - Status de paz
 família - Status familiar
 trabalho - Status profissional
+felicidade - Status alegre
+força - Status de determinação
+gratidão - Status de agradecimento
 ```
+
+### Funcionamento
+- **Qualquer mensagem** vira tema automaticamente
+- **Sem comandos especiais** necessários
+- **Resposta instantânea** com imagem personalizada
 
 ## 🔒 Segurança
 
