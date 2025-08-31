@@ -23,6 +23,10 @@ export interface ImageGenerationResponse {
 
 class ImageGenerationService {
   private imageModel;
+  private lastGeminiCall: number = 0;
+  private geminiCallCount: number = 0;
+  private readonly RATE_LIMIT_DELAY = 60000; // 1 minuto entre chamadas
+  private readonly MAX_CALLS_PER_HOUR = 15; // Limite conservador
 
   constructor() {
     // Usando o modelo Gemini 2.5 Flash Image Preview para geração de imagens
@@ -41,35 +45,39 @@ class ImageGenerationService {
       const prompt = this.buildImagePrompt(request.text, request.theme, request.style);
       console.log('📝 Prompt para imagem:', prompt);
 
-      // Tentar gerar imagem com Gemini 2.5 Flash Image Preview
-      try {
-        const imageUrl = await this.generateWithGemini(prompt);
-        
-        return {
-          imageUrl,
-          prompt,
-          metadata: {
-            model: 'gemini-2.5-flash-image-preview',
-            timestamp: Date.now(),
-            theme: request.theme
-          }
-        };
-      } catch (geminiError) {
-        console.warn('⚠️ Gemini image generation failed, using Unsplash fallback:', geminiError);
-        
-        // Fallback para Unsplash
-        const fallbackImage = await this.generateWithUnsplash(request);
-        
-        return {
-          imageUrl: fallbackImage,
-          prompt,
-          metadata: {
-            model: 'unsplash-fallback',
-            timestamp: Date.now(),
-            theme: request.theme
-          }
-        };
+      // Verificar rate limit antes de tentar Gemini
+      if (this.canUseGemini()) {
+        try {
+          const imageUrl = await this.generateWithGemini(prompt);
+          
+          return {
+            imageUrl,
+            prompt,
+            metadata: {
+              model: 'gemini-2.5-flash-image-preview',
+              timestamp: Date.now(),
+              theme: request.theme
+            }
+          };
+        } catch (geminiError) {
+          console.warn('⚠️ Gemini image generation failed, using Unsplash fallback:', geminiError);
+        }
+      } else {
+        console.log('🚫 Gemini rate limit ativo, usando Unsplash diretamente');
       }
+      
+      // Fallback para Unsplash (sempre disponível)
+      const fallbackImage = await this.generateWithUnsplash(request);
+      
+      return {
+        imageUrl: fallbackImage,
+        prompt,
+        metadata: {
+          model: 'unsplash-fallback',
+          timestamp: Date.now(),
+          theme: request.theme
+        }
+      };
 
     } catch (error) {
       console.error('❌ Erro ao gerar imagem:', error);
@@ -198,10 +206,43 @@ Requirements:
   }
 
   /**
+   * Verifica se pode usar o Gemini baseado no rate limit
+   */
+  private canUseGemini(): boolean {
+    const now = Date.now();
+    const hourAgo = now - (60 * 60 * 1000);
+    
+    // Reset contador se passou 1 hora
+    if (this.lastGeminiCall < hourAgo) {
+      this.geminiCallCount = 0;
+    }
+    
+    // Verificar se está dentro do limite
+    const timeSinceLastCall = now - this.lastGeminiCall;
+    const hasWaitedEnough = timeSinceLastCall >= this.RATE_LIMIT_DELAY;
+    const hasCallsRemaining = this.geminiCallCount < this.MAX_CALLS_PER_HOUR;
+    
+    return hasWaitedEnough && hasCallsRemaining;
+  }
+
+  /**
+   * Registra uma chamada para o Gemini
+   */
+  private recordGeminiCall(): void {
+    this.lastGeminiCall = Date.now();
+    this.geminiCallCount++;
+    
+    console.log(`📊 Gemini calls: ${this.geminiCallCount}/${this.MAX_CALLS_PER_HOUR} (última: ${new Date(this.lastGeminiCall).toLocaleTimeString()})`);
+  }
+
+  /**
    * Gera imagem usando Gemini 2.5 Flash Image Preview
    */
   private async generateWithGemini(prompt: string): Promise<string> {
     try {
+      // Registrar a chamada para controle de rate limit
+      this.recordGeminiCall();
+      
       const result = await this.imageModel.generateContent([
         {
           text: prompt
@@ -272,8 +313,9 @@ Requirements:
         request.theme
       ].join(',');
 
-      // URL do Unsplash com parâmetros otimizados
-      const unsplashUrl = `https://source.unsplash.com/1080x1920/?${encodeURIComponent(searchTerms)}&orientation=portrait&quality=80&fit=crop`;
+      // URL do Unsplash com parâmetros otimizados + timestamp para evitar cache
+      const timestamp = Date.now();
+      const unsplashUrl = `https://source.unsplash.com/1080x1920/?${encodeURIComponent(searchTerms)}&orientation=portrait&quality=80&fit=crop&t=${timestamp}`;
       
       console.log('🖼️ Gerando com Unsplash:', searchTerms);
       

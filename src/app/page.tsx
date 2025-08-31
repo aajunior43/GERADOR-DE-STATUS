@@ -48,10 +48,19 @@ export default function Home() {
             aspectRatio: '9:16'
           });
           setBackgroundImage(imageResponse.imageUrl);
-          console.log('✅ Imagem de fundo gerada:', imageResponse.imageUrl);
+          
+          // Informar ao usuário qual modelo foi usado
+          if (imageResponse.metadata.model === 'gemini-2.5-flash-image-preview') {
+            console.log('✅ Imagem IA gerada com Gemini:', imageResponse.imageUrl);
+            showToast('Imagem IA gerada com sucesso!', 'success');
+          } else {
+            console.log('✅ Imagem de stock gerada:', imageResponse.imageUrl);
+            showToast('Imagem de stock aplicada!', 'success');
+          }
         } catch (imageError) {
           console.warn('⚠️ Erro ao gerar imagem de fundo, continuando sem imagem:', imageError);
           setBackgroundImage(null);
+          showToast('Erro na geração de imagem', 'error');
         }
       } else {
         setBackgroundImage(null);
