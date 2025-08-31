@@ -72,7 +72,6 @@ export default function Home() {
     ctx.scale(scale, scale);
 
     // Anti-aliasing para texto mais suave
-    ctx.textRenderingOptimization = 'optimizeQuality';
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
@@ -257,11 +256,11 @@ export default function Home() {
     let fontSize = generatedContent.fontSize || 24;
 
     // Dividir texto em parágrafos (quebras de linha originais)
-    const paragraphs = generatedContent.text.split('\n').filter(p => p.trim());
+    const paragraphs = generatedContent.text.split('\n').filter((p: string) => p.trim());
     let allLines: string[] = [];
 
     // Quebrar cada parágrafo em linhas que cabem na tela
-    paragraphs.forEach((paragraph, index) => {
+    paragraphs.forEach((paragraph: string, index: number) => {
       const wrappedLines = wrapText(paragraph.trim(), maxWidth, fontSize);
       allLines = allLines.concat(wrappedLines);
 
@@ -290,7 +289,7 @@ export default function Home() {
       fontSize = Math.max(fontSize - 2, minFontSize);
       allLines = [];
 
-      paragraphs.forEach((paragraph, index) => {
+      paragraphs.forEach((paragraph: string, index: number) => {
         const wrappedLines = wrapText(paragraph.trim(), maxWidth, fontSize);
         allLines = allLines.concat(wrappedLines);
 
@@ -589,22 +588,23 @@ export default function Home() {
           </div>
 
           {/* Coluna Direita - Preview e Navegação */}
-          <div className="space-y-8">
-            {/* Preview centralizado */}
+          <div className="space-y-10">
+            {/* Preview centralizado com efeitos aprimorados */}
             <section className="flex justify-center">
               <div className="relative group">
+                <div className="absolute -inset-8 bg-gradient-primary rounded-3xl blur-2xl opacity-20 group-hover:opacity-40 transition-opacity duration-1000"></div>
                 <div 
-                  className="w-64 aspect-[9/16] rounded-3xl overflow-hidden shadow-2xl border border-white/10 active:scale-95 transition-all duration-300 cursor-pointer"
+                  className="relative w-72 aspect-[9/16] rounded-3xl overflow-hidden shadow-glass border border-glass active:scale-95 transition-all duration-300 cursor-pointer backdrop-blur-xl"
                   onClick={() => generatedContent && downloadImage()}
                 >
                   <div 
-                    className={`w-full h-full flex items-center justify-center p-6 text-center relative ${generatedContent ? getFontClass(generatedContent.fontFamily) : 'font-inter'}`}
+                    className={`w-full h-full flex items-center justify-center p-8 text-center relative ${generatedContent ? getFontClass(generatedContent.fontFamily) : 'font-inter'}`}
                     style={{
                       background: generatedContent 
                         ? `linear-gradient(135deg, ${generatedContent.backgroundColor} 0%, ${adjustBrightness(generatedContent.backgroundColor, -15)} 100%)`
                         : 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
                       color: generatedContent?.textColor || '#f39c12',
-                      fontSize: '15px'
+                      fontSize: '16px'
                     }}
                   >
                     {/* Vinheta preta no preview */}
@@ -617,14 +617,14 @@ export default function Home() {
                       />
                     )}
                     {isGenerating ? (
-                      <div className="flex flex-col items-center space-y-4">
+                      <div className="flex flex-col items-center space-y-6">
                         <div className="relative">
-                          <div className="w-10 h-10 border-2 border-current/20 rounded-full"></div>
-                          <div className="absolute top-0 left-0 w-10 h-10 border-2 border-transparent border-t-current rounded-full animate-spin"></div>
+                          <div className="w-12 h-12 border-2 border-current/20 rounded-full"></div>
+                          <div className="absolute top-0 left-0 w-12 h-12 border-2 border-transparent border-t-current rounded-full animate-spin"></div>
                         </div>
-                        <div className="text-center">
-                          <div className="text-base opacity-80 mb-2">Criando com IA</div>
-                          <div className="flex justify-center gap-1">
+                        <div className="text-center space-y-4">
+                          <div className="text-lg opacity-90">Criando com IA</div>
+                          <div className="flex justify-center gap-2">
                             <div className="w-2 h-2 bg-current/60 rounded-full animate-pulse"></div>
                             <div className="w-2 h-2 bg-current/60 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
                             <div className="w-2 h-2 bg-current/60 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
@@ -636,21 +636,26 @@ export default function Home() {
                         {generatedContent.text}
                       </p>
                     ) : (
-                      <div className="opacity-60 text-center">
-                        <div className="w-12 h-12 border-2 border-current/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <div className="w-5 h-5 bg-current/50 rounded-full"></div>
+                      <div className="opacity-70 text-center space-y-6">
+                        <div className="w-16 h-16 border-2 border-current/30 rounded-full flex items-center justify-center mx-auto">
+                          <div className="w-6 h-6 bg-current/50 rounded-full animate-pulse"></div>
                         </div>
-                        <div className="text-base">Preview</div>
-                        <div className="text-sm opacity-70 mt-2">Toque para baixar</div>
+                        <div className="space-y-2">
+                          <div className="text-lg">Preview</div>
+                          <div className="text-sm opacity-70">Toque para baixar</div>
+                        </div>
                       </div>
                     )}
                   </div>
                 </div>
                 
-                {/* Indicador de download */}
+                {/* Indicador de download aprimorado */}
                 {generatedContent && (
-                  <div className="absolute -bottom-3 left-1/2 transform -translate-x-1/2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-sm text-white/70">
-                    Toque para baixar
+                  <div className="absolute -bottom-4 left-1/2 transform -translate-x-1/2 glass-card rounded-full px-6 py-3 text-sm text-white/80 border border-glass">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-gradient-primary rounded-full animate-pulse"></div>
+                      <span>Toque para baixar</span>
+                    </div>
                   </div>
                 )}
               </div>
@@ -658,22 +663,34 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Layout Mobile */}
-        <div className="block md:hidden space-y-6">
+        {/* Layout Mobile Aprimorado */}
+        <div className="block md:hidden space-y-8">
           {/* Header simplificado para mobile */}
-          <header className="text-center space-y-4">
-            <h1 className="text-4xl font-light text-white tracking-wide bg-gradient-to-r from-white via-blue-100 to-white bg-clip-text text-transparent animate-pulse">
-              Status AI
-            </h1>
-            <div className="w-16 h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent mx-auto shadow-lg"></div>
-            <p className="text-white/70 text-base font-medium">Crie status únicos com IA ✨</p>
+          <header className="text-center space-y-6">
+            <div className="relative group">
+              <div className="absolute -inset-2 bg-gradient-primary rounded-2xl blur-lg opacity-20 group-hover:opacity-40 transition-opacity duration-1000"></div>
+              <h1 className="relative text-5xl font-light text-white tracking-wide bg-gradient-to-r from-white via-blue-200 to-purple-200 bg-clip-text text-transparent animate-pulse">
+                Status AI
+              </h1>
+            </div>
+            <div className="flex items-center justify-center space-x-3">
+              <div className="w-12 h-px bg-gradient-to-r from-transparent via-blue-400 to-transparent shadow-glow-blue"></div>
+              <div className="p-1.5 rounded-full bg-gradient-primary/20">
+                <div className="w-1.5 h-1.5 bg-gradient-primary rounded-full animate-pulse"></div>
+              </div>
+              <div className="w-12 h-px bg-gradient-to-l from-transparent via-purple-400 to-transparent shadow-glow-purple"></div>
+            </div>
+            <p className="text-white/80 text-lg font-medium bg-gradient-to-r from-blue-200 to-purple-200 bg-clip-text text-transparent">
+              Crie status únicos com IA ✨
+            </p>
           </header>
 
-          {/* Preview mobile centralizado */}
+          {/* Preview mobile centralizado aprimorado */}
           <section className="flex justify-center">
             <div className="relative group">
+              <div className="absolute -inset-6 bg-gradient-primary rounded-2xl blur-xl opacity-15 group-hover:opacity-30 transition-opacity duration-1000"></div>
               <div 
-                className="w-56 aspect-[9/16] rounded-3xl overflow-hidden shadow-2xl border border-white/10 active:scale-95 transition-all duration-300 cursor-pointer"
+                className="relative w-64 aspect-[9/16] rounded-3xl overflow-hidden shadow-glass border border-glass active:scale-95 transition-all duration-300 cursor-pointer backdrop-blur-xl"
                 onClick={() => generatedContent && downloadImage()}
               >
                 <div 
@@ -683,7 +700,7 @@ export default function Home() {
                       ? `linear-gradient(135deg, ${generatedContent.backgroundColor} 0%, ${adjustBrightness(generatedContent.backgroundColor, -15)} 100%)`
                       : 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
                     color: generatedContent?.textColor || '#f39c12',
-                    fontSize: '13px'
+                    fontSize: '14px'
                   }}
                 >
                   {includeVignette && (
@@ -697,12 +714,12 @@ export default function Home() {
                   {isGenerating ? (
                     <div className="flex flex-col items-center space-y-4">
                       <div className="relative">
-                        <div className="w-8 h-8 border-2 border-current/20 rounded-full"></div>
-                        <div className="absolute top-0 left-0 w-8 h-8 border-2 border-transparent border-t-current rounded-full animate-spin"></div>
+                        <div className="w-10 h-10 border-2 border-current/20 rounded-full"></div>
+                        <div className="absolute top-0 left-0 w-10 h-10 border-2 border-transparent border-t-current rounded-full animate-spin"></div>
                       </div>
-                      <div className="text-center">
-                        <div className="text-sm opacity-80 mb-2">Criando com IA</div>
-                        <div className="flex justify-center gap-1">
+                      <div className="text-center space-y-3">
+                        <div className="text-base opacity-90">Criando com IA</div>
+                        <div className="flex justify-center gap-1.5">
                           <div className="w-1.5 h-1.5 bg-current/60 rounded-full animate-pulse"></div>
                           <div className="w-1.5 h-1.5 bg-current/60 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }}></div>
                           <div className="w-1.5 h-1.5 bg-current/60 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }}></div>
@@ -714,12 +731,14 @@ export default function Home() {
                       {generatedContent.text}
                     </p>
                   ) : (
-                    <div className="opacity-60 text-center">
-                      <div className="w-10 h-10 border-2 border-current/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <div className="w-4 h-4 bg-current/50 rounded-full"></div>
+                    <div className="opacity-70 text-center space-y-4">
+                      <div className="w-12 h-12 border-2 border-current/30 rounded-full flex items-center justify-center mx-auto">
+                        <div className="w-5 h-5 bg-current/50 rounded-full animate-pulse"></div>
                       </div>
-                      <div className="text-sm">Preview</div>
-                      <div className="text-xs opacity-70 mt-2">Toque para baixar</div>
+                      <div className="space-y-1">
+                        <div className="text-base">Preview</div>
+                        <div className="text-xs opacity-70">Toque para baixar</div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -962,9 +981,17 @@ export default function Home() {
             </button>
           </section>
         </div>
-
+        
         {/* Container de toasts */}
         <ToastContainer />
+        
+        {/* Elementos decorativos de fundo */}
+        <div className="fixed bottom-10 right-10 opacity-20 pointer-events-none">
+          <div className="w-32 h-32 bg-gradient-primary rounded-full blur-3xl animate-pulse"></div>
+        </div>
+        <div className="fixed top-20 left-10 opacity-10 pointer-events-none">
+          <div className="w-24 h-24 bg-gradient-secondary rounded-full blur-2xl animate-bounce-soft"></div>
+        </div>
       </div>
     </div>
   );

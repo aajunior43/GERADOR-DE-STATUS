@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Sparkles, Menu, X, Home, Plus, History, Heart, User, Settings, Moon, Sun, MessageCircle } from 'lucide-react';
 
 const EnhancedHeader = () => {
@@ -31,124 +30,127 @@ const EnhancedHeader = () => {
   };
 
   return (
-    <motion.header
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'glass-effect border-b border-gray-700/50' : 'bg-transparent'
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${isScrolled 
+        ? 'glass-effect border-b border-glass backdrop-blur-xl' 
+        : 'bg-transparent'
       }`}
     >
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          {/* Logo */}
-          <motion.div
-            className="flex items-center space-x-2 cursor-pointer"
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <div className="p-2 rounded-lg bg-gradient-gold">
-              <Sparkles className="h-6 w-6 text-black-deep" />
+          {/* Logo Aprimorado */}
+          <div className="flex items-center space-x-3 cursor-pointer group">
+            <div className="relative p-3 rounded-2xl bg-gradient-primary shadow-glow-blue transition-all duration-300 group-hover:scale-110 group-hover:rotate-6">
+              <Sparkles className="h-7 w-7 text-white animate-pulse" />
+              <div className="absolute inset-0 rounded-2xl bg-gradient-primary opacity-50 blur-md -z-10"></div>
             </div>
-            <div>
-              <h1 className="text-xl font-bold text-white-pure">
-                Status<span className="text-gradient">AI</span>
+            <div className="transition-all duration-300 group-hover:translate-x-1">
+              <h1 className="text-2xl font-bold text-white-pure">
+                Status<span className="text-gradient-primary">AI</span>
               </h1>
-              <p className="text-xs text-gray-medium">Creator</p>
+              <p className="text-xs text-gray-medium tracking-wider uppercase">Creator Studio</p>
             </div>
-          </motion.div>
+          </div>
 
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-1">
+          {/* Desktop Navigation Melhorado */}
+          <div className="hidden md:flex items-center space-x-2">
             {navItems.map((item, index) => {
               const Icon = item.icon;
               return (
-                <motion.a
+                <a
                   key={item.label}
                   href={item.href}
-                  className="flex items-center space-x-2 px-4 py-2 text-gray-light hover:text-gold-luxury transition-colors duration-300 font-medium rounded-lg hover:bg-gray-800/50"
-                  whileHover={{ y: -2 }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 + 0.3 }}
+                  className="group relative flex items-center space-x-2 px-5 py-3 text-gray-light hover:text-white transition-all duration-300 font-medium rounded-2xl hover:bg-white/5 active:scale-95"
+                  style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.label}</span>
-                </motion.a>
+                  <Icon className="h-4 w-4 transition-transform duration-300 group-hover:scale-110" />
+                  <span className="relative">
+                    {item.label}
+                    <div className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-primary rounded-full transition-all duration-300 group-hover:w-full"></div>
+                  </span>
+                </a>
               );
             })}
             
-            {/* Modo escuro/claro */}
-            <motion.button
+            {/* Toggle Modo Escuro Aprimorado */}
+            <button
               onClick={toggleDarkMode}
-              className="p-2 rounded-lg text-gray-light hover:text-gold-luxury transition-colors duration-300 hover:bg-gray-800/50"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
+              className="group p-3 rounded-2xl text-gray-light hover:text-white transition-all duration-300 hover:bg-white/5 active:scale-90 relative overflow-hidden"
             >
-              {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            </motion.button>
+              <div className="relative z-10">
+                {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </div>
+              <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"></div>
+            </button>
           </div>
 
-          {/* Mobile Menu Button */}
-          <motion.button
-            className="md:hidden p-2 rounded-lg text-gray-light hover:text-gold-luxury transition-colors"
+          {/* Mobile Menu Button Aprimorado */}
+          <button
+            className="md:hidden group relative p-3 rounded-2xl text-gray-light hover:text-white transition-all duration-300 hover:bg-white/10 active:scale-90"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            whileTap={{ scale: 0.9 }}
           >
-            {isMobileMenuOpen ? (
-              <X className="h-6 w-6" />
-            ) : (
-              <Menu className="h-6 w-6" />
-            )}
-          </motion.button>
+            <div className="relative z-10">
+              <div className={`transition-all duration-300 ${isMobileMenuOpen ? 'rotate-180 scale-90' : ''}`}>
+                {isMobileMenuOpen ? (
+                  <X className="h-6 w-6" />
+                ) : (
+                  <Menu className="h-6 w-6" />
+                )}
+              </div>
+            </div>
+            <div className="absolute inset-0 bg-gradient-primary opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"></div>
+          </button>
         </div>
 
-        {/* Mobile Menu */}
-        <motion.div
-          className={`md:hidden ${isMobileMenuOpen ? 'block' : 'hidden'}`}
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ 
-            opacity: isMobileMenuOpen ? 1 : 0,
-            height: isMobileMenuOpen ? 'auto' : 0
-          }}
-          transition={{ duration: 0.3 }}
+        {/* Mobile Menu Melhorado */}
+        <div
+          className={`md:hidden transition-all duration-500 ease-in-out overflow-hidden ${
+            isMobileMenuOpen ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+          }`}
         >
-          <div className="px-2 pt-2 pb-3 space-y-1 glass-effect rounded-lg mt-2 border border-gray-700/50">
-            {navItems.map((item, index) => {
-              const Icon = item.icon;
-              return (
-                <motion.a
-                  key={item.label}
-                  href={item.href}
-                  className="flex items-center space-x-3 px-3 py-2 text-gray-light hover:text-gold-luxury transition-colors duration-300 font-medium rounded-md hover:bg-gray-dark"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span>{item.label}</span>
-                </motion.a>
-              );
-            })}
-            
-            {/* Modo escuro/claro no mobile */}
-            <motion.button
-              onClick={() => {
-                toggleDarkMode();
-                setIsMobileMenuOpen(false);
-              }}
-              className="flex items-center space-x-3 w-full px-3 py-2 text-gray-light hover:text-gold-luxury transition-colors duration-300 font-medium rounded-md hover:bg-gray-dark"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-            >
-              {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-              <span>{darkMode ? 'Modo Claro' : 'Modo Escuro'}</span>
-            </motion.button>
+          <div className="glass-card m-4 p-6 border border-glass">
+            <div className="space-y-2">
+              {navItems.map((item, index) => {
+                const Icon = item.icon;
+                return (
+                  <a
+                    key={item.label}
+                    href={item.href}
+                    className="group flex items-center space-x-4 px-4 py-4 text-gray-light hover:text-white transition-all duration-300 font-medium rounded-xl hover:bg-white/5 active:scale-95"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <div className="p-2 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors duration-300">
+                      <Icon className="h-4 w-4" />
+                    </div>
+                    <span className="flex-1">{item.label}</span>
+                    <div className="w-2 h-2 rounded-full bg-gradient-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  </a>
+                );
+              })}
+              
+              {/* Divisor */}
+              <div className="my-4 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
+              
+              {/* Toggle Modo Escuro Mobile */}
+              <button
+                onClick={() => {
+                  toggleDarkMode();
+                  setIsMobileMenuOpen(false);
+                }}
+                className="group flex items-center space-x-4 w-full px-4 py-4 text-gray-light hover:text-white transition-all duration-300 font-medium rounded-xl hover:bg-white/5 active:scale-95"
+              >
+                <div className="p-2 rounded-lg bg-white/5 group-hover:bg-white/10 transition-colors duration-300">
+                  {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+                </div>
+                <span className="flex-1">{darkMode ? 'Modo Claro' : 'Modo Escuro'}</span>
+                <div className="w-2 h-2 rounded-full bg-gradient-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </button>
+            </div>
           </div>
-        </motion.div>
+        </div>
       </nav>
-    </motion.header>
+    </header>
   );
 };
 
