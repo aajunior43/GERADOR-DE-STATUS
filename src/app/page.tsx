@@ -14,7 +14,9 @@ export default function Home() {
   const [includeEmojis, setIncludeEmojis] = useState(true);
   const [includeHashtags, setIncludeHashtags] = useState(false);
   const [includeVignette, setIncludeVignette] = useState(false);
+  const [includeBackground, setIncludeBackground] = useState(false);
   const [currentThemeIndex, setCurrentThemeIndex] = useState(0);
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
 
   const { showToast, ToastContainer } = useToast();
 
@@ -31,6 +33,14 @@ export default function Home() {
       });
 
       setGeneratedContent(response.generatedContent);
+
+      // Gerar imagem de fundo se solicitado
+      if (includeBackground) {
+        await generateBackgroundImage(response.generatedContent.text, theme);
+      } else {
+        setBackgroundImage(null);
+      }
+
       hapticFeedback.success();
       showToast('Status criado com sucesso!', 'success');
     } catch (error) {
@@ -41,9 +51,87 @@ export default function Home() {
         text: `"A única forma de fazer um excelente trabalho é amar o que você faz." ✨\n(Steve Jobs)`,
         backgroundColor: '#1a1a2e', textColor: '#f39c12', fontSize: 20, fontFamily: 'Inter'
       });
+      setBackgroundImage(null);
     } finally {
       setIsGenerating(false);
     }
+  };
+
+  // Função para gerar imagem de fundo usando serviço inteligente
+  const generateBackgroundImage = async (text: string, theme: string) => {
+    try {
+      const { imageGenerationService } = await import('@/services/imageService');
+      
+      console.log('🎨 Gerando imagem de fundo para:', { text: text.substring(0, 50), theme });
+      
+      const response = await imageGenerationService.generateBackgroundImage({
+        text,
+        theme,
+        style: 'artistic',
+        aspectRatio: '9:16'
+      });
+      
+      console.log('✅ Imagem gerada:', response.imageUrl);
+      setBackgroundImage(response.imageUrl);
+      
+      return response.imageUrl;
+    } catch (error) {
+      console.error('❌ Erro ao gerar imagem de fundo:', error);
+      // Fallback para imagem genérica
+      const fallbackUrl = getFallbackImage(theme);
+      setBackgroundImage(fallbackUrl);
+      return fallbackUrl;
+    }
+  };
+
+  // Extrair palavras-chave inteligentes do texto e tema
+  const extractKeywords = (text: string, theme: string): string[] => {
+    const themeKeywords: Record<string, string[]> = {
+      'motivação': ['motivation', 'success', 'achievement', 'inspiration'],
+      'motivacao': ['motivation', 'success', 'achievement', 'inspiration'],
+      'amor': ['love', 'romance', 'heart', 'couple'],
+      'sucesso': ['success', 'business', 'achievement', 'victory'],
+      'paz': ['peace', 'nature', 'calm', 'zen'],
+      'força': ['strength', 'power', 'energy', 'determination'],
+      'forca': ['strength', 'power', 'energy', 'determination'],
+      'felicidade': ['happiness', 'joy', 'smile', 'celebration'],
+      'família': ['family', 'home', 'together', 'love'],
+      'familia': ['family', 'home', 'together', 'love'],
+      'trabalho': ['work', 'office', 'business', 'professional'],
+      'vida': ['life', 'nature', 'journey', 'growth'],
+      'fé': ['faith', 'spiritual', 'hope', 'light'],
+      'fe': ['faith', 'spiritual', 'hope', 'light'],
+    };
+
+    const baseKeywords = themeKeywords[theme.toLowerCase()] || ['abstract', 'minimal'];
+    
+    // Adicionar palavras do texto (filtrar palavras importantes)
+    const textWords = text.toLowerCase()
+      .replace(/[^\w\s]/g, ' ')
+      .split(' ')
+      .filter(word => word.length > 3)
+      .slice(0, 2);
+    
+    return [...baseKeywords, ...textWords].slice(0, 4);
+  };
+
+  // Imagens de fallback baseadas no tema
+  const getFallbackImage = (theme: string): string => {
+    const fallbacks: Record<string, string> = {
+      'motivação': 'https://source.unsplash.com/1080x1920/?mountain,success&orientation=portrait',
+      'motivacao': 'https://source.unsplash.com/1080x1920/?mountain,success&orientation=portrait',
+      'amor': 'https://source.unsplash.com/1080x1920/?sunset,couple&orientation=portrait',
+      'sucesso': 'https://source.unsplash.com/1080x1920/?business,achievement&orientation=portrait',
+      'paz': 'https://source.unsplash.com/1080x1920/?nature,calm&orientation=portrait',
+      'força': 'https://source.unsplash.com/1080x1920/?strength,power&orientation=portrait',
+      'forca': 'https://source.unsplash.com/1080x1920/?strength,power&orientation=portrait',
+      'felicidade': 'https://source.unsplash.com/1080x1920/?joy,happiness&orientation=portrait',
+      'família': 'https://source.unsplash.com/1080x1920/?family,home&orientation=portrait',
+      'familia': 'https://source.unsplash.com/1080x1920/?family,home&orientation=portrait',
+      'default': 'https://source.unsplash.com/1080x1920/?abstract,minimal&orientation=portrait'
+    };
+    
+    return fallbacks[theme.toLowerCase()] || fallbacks.default;
   };
 
   const downloadImage = () => {
@@ -64,16 +152,21 @@ export default function Home() {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
-    // Background com gradiente melhorado
-    const gradient = ctx.createLinearGradient(0, 0, width, height);
-    const baseColor = generatedContent.backgroundColor;
-    gradient.addColorStop(0, adjustBrightness(baseColor, 20));
-    gradient.addColorStop(0.2, adjustBrightness(baseColor, 10));
-    gradient.addColorStop(0.5, baseColor);
-    gradient.addColorStop(0.8, adjustBrightness(baseColor, -10));
-    gradient.addColorStop(1, adjustBrightness(baseColor, -25));
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, width, height);
+    // Aplicar imagem de fundo se disponível
+    if (backgroundImage && includeBackground) {
+      await drawBackgroundImage(ctx, width, height, backgroundImage);
+    } else {
+      // Background com gradiente melhorado (fallback)
+      const gradient = ctx.createLinearGradient(0, 0, width, height);
+      const baseColor = generatedContent.backgroundColor;
+      gradient.addColorStop(0, adjustBrightness(baseColor, 20));
+      gradient.addColorStop(0.2, adjustBrightness(baseColor, 10));
+      gradient.addColorStop(0.5, baseColor);
+      gradient.addColorStop(0.8, adjustBrightness(baseColor, -10));
+      gradient.addColorStop(1, adjustBrightness(baseColor, -25));
+      ctx.fillStyle = gradient;
+      ctx.fillRect(0, 0, width, height);
+    }
 
     // Adicionar elementos decorativos modernos
     drawDecorativeElements(ctx, width, height, baseColor);
@@ -99,6 +192,68 @@ export default function Home() {
     link.href = canvas.toDataURL('image/png', 0.95);
     link.click();
     showToast('Imagem HD baixada!', 'success');
+  };
+
+  // Função para desenhar imagem de fundo
+  const drawBackgroundImage = async (ctx: CanvasRenderingContext2D, width: number, height: number, imageUrl: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.crossOrigin = 'anonymous';
+      
+      img.onload = () => {
+        try {
+          // Desenhar imagem cobrindo todo o canvas mantendo proporção
+          const imgAspect = img.width / img.height;
+          const canvasAspect = width / height;
+          
+          let drawWidth, drawHeight, drawX, drawY;
+          
+          if (imgAspect > canvasAspect) {
+            // Imagem mais larga que o canvas
+            drawHeight = height;
+            drawWidth = height * imgAspect;
+            drawX = (width - drawWidth) / 2;
+            drawY = 0;
+          } else {
+            // Imagem mais alta que o canvas
+            drawWidth = width;
+            drawHeight = width / imgAspect;
+            drawX = 0;
+            drawY = (height - drawHeight) / 2;
+          }
+          
+          ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
+          
+          // Aplicar overlay semi-transparente para melhor legibilidade do texto
+          const overlayGradient = ctx.createLinearGradient(0, 0, 0, height);
+          overlayGradient.addColorStop(0, 'rgba(0, 0, 0, 0.3)');
+          overlayGradient.addColorStop(0.5, 'rgba(0, 0, 0, 0.1)');
+          overlayGradient.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
+          
+          ctx.fillStyle = overlayGradient;
+          ctx.fillRect(0, 0, width, height);
+          
+          console.log('✅ Imagem de fundo aplicada com sucesso');
+          resolve();
+        } catch (error) {
+          console.error('❌ Erro ao desenhar imagem:', error);
+          reject(error);
+        }
+      };
+      
+      img.onerror = (error) => {
+        console.error('❌ Erro ao carregar imagem de fundo:', error);
+        reject(error);
+      };
+      
+      img.src = imageUrl;
+      
+      // Timeout de 10 segundos
+      setTimeout(() => {
+        console.warn('⏱️ Timeout ao carregar imagem de fundo');
+        reject(new Error('Timeout'));
+      }, 10000);
+    });
   };
 
   // Função para desenhar elementos decorativos
@@ -322,7 +477,7 @@ export default function Home() {
                         <h3 className="text-lg font-semibold text-center text-gray-900">
                           Personalizar
                         </h3>
-                        <div className="grid grid-cols-3 gap-4">
+                        <div className="grid grid-cols-2 gap-4 mb-4">
                           
                           {/* Emojis */}
                           <label className="flex flex-col items-center gap-2 cursor-pointer p-3 rounded-lg border-2 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50" 
@@ -340,12 +495,23 @@ export default function Home() {
                             <span className="text-sm font-medium text-gray-700">Hashtags</span>
                           </label>
 
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4">
                           {/* Vinheta */}
                           <label className="flex flex-col items-center gap-2 cursor-pointer p-3 rounded-lg border-2 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50"
                                  style={{ borderColor: includeVignette ? '#3B82F6' : '#E5E7EB', backgroundColor: includeVignette ? '#EFF6FF' : 'transparent' }}>
                             <input type="checkbox" checked={includeVignette} onChange={(e) => setIncludeVignette(e.target.checked)} className="sr-only" />
                             <div className="text-2xl">🎞️</div>
                             <span className="text-sm font-medium text-gray-700">Vinheta</span>
+                          </label>
+
+                          {/* Fundo com Imagem */}
+                          <label className="flex flex-col items-center gap-2 cursor-pointer p-3 rounded-lg border-2 transition-all duration-200 hover:border-blue-300 hover:bg-blue-50"
+                                 style={{ borderColor: includeBackground ? '#3B82F6' : '#E5E7EB', backgroundColor: includeBackground ? '#EFF6FF' : 'transparent' }}>
+                            <input type="checkbox" checked={includeBackground} onChange={(e) => setIncludeBackground(e.target.checked)} className="sr-only" />
+                            <div className="text-2xl">🖼️</div>
+                            <span className="text-sm font-medium text-gray-700">Imagem AI</span>
                           </label>
                         </div>
                       </div>
@@ -388,13 +554,25 @@ export default function Home() {
                             <div 
                               className={`w-full h-full flex items-center justify-center p-6 lg:p-8 text-center relative ${generatedContent ? getFontClass(generatedContent.fontFamily) : 'font-inter'}`}
                               style={{
-                                background: generatedContent 
+                                background: backgroundImage && includeBackground
+                                  ? `url('${backgroundImage}') center/cover`
+                                  : generatedContent 
                                   ? `linear-gradient(135deg, ${generatedContent.backgroundColor} 0%, ${adjustBrightness(generatedContent.backgroundColor, -15)} 100%)`
                                   : 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)',
                                 color: generatedContent?.textColor || '#f39c12',
                                 fontSize: '14px'
                               }}
                             >
+                              {/* Overlay para legibilidade do texto quando há imagem de fundo */}
+                              {backgroundImage && includeBackground && (
+                                <div 
+                                  className="absolute inset-0 pointer-events-none"
+                                  style={{
+                                    background: 'linear-gradient(0deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.4) 100%)'
+                                  }}
+                                />
+                              )}
+                              
                               {includeVignette && (
                                 <div className="absolute inset-0 pointer-events-none" style={{
                                   background: 'radial-gradient(circle at center, rgba(0,0,0,0) 0%, rgba(0,0,0,0.1) 70%, rgba(0,0,0,0.6) 100%)'
@@ -409,7 +587,13 @@ export default function Home() {
                                   </div>
                                 </div>
                               ) : generatedContent ? (
-                                <p className="font-medium leading-relaxed whitespace-pre-line text-sm">
+                                <p 
+                                  className="font-medium leading-relaxed whitespace-pre-line text-sm relative z-10"
+                                  style={{
+                                    textShadow: backgroundImage && includeBackground ? '2px 2px 4px rgba(0,0,0,0.8)' : 'none',
+                                    color: backgroundImage && includeBackground ? '#ffffff' : (generatedContent?.textColor || '#f39c12')
+                                  }}
+                                >
                                   {generatedContent.text}
                                 </p>
                               ) : (
