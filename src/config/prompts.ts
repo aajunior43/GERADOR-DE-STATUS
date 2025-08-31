@@ -12,106 +12,56 @@ export interface PromptConfig {
 }
 
 export const promptConfig: PromptConfig = {
-  basePrompt: `🎯 CATEGORIA: "{theme}" (ID: {randomSeed}-{timeStamp}-{currentAttempt})
+  basePrompt: `Crie uma frase inspiradora sobre "{theme}".
 
-📋 MISSÃO: Crie uma citação ÚNICA e INSPIRACIONAL para "{theme}".
-
-{sourceInstruction}
-
-🔍 REGRAS CRIATIVAS:
-• SEJA TOTALMENTE CRIATIVO na escolha da fonte
-• VARIE sempre entre diferentes tipos de fontes
-• NÃO se limite - explore qualquer fonte inspiradora
-• OBRIGATÓRIO: Nunca repita citações anteriores
-• Máximo 80 caracteres na frase principal
+REquISITOS:
+- Seja original e motivacional
+- Use português brasileiro
+- Máximo 120 caracteres
+- Inclua o autor/fonte entre parênteses
 {emojiInstruction}
 {hashtagInstruction}
-• Português brasileiro perfeito`,
+
+{sourceInstruction}`,
 
   sourceInstructions: {
-    filme: `🎬 FONTE OBRIGATÓRIA: Citação DIRETA de um filme famoso
-• Use uma frase icônica de filme clássico ou moderno
-• Pode ser nacional ou internacional
-• Exemplos: "Que a força esteja com você" (Star Wars), "Hakuna Matata" (Rei Leão)
-• OBRIGATÓRIO: Mencione o filme entre parênteses`,
+    filme: `Use uma citação famosa de filme relacionada ao tema.
+Exemplo: "Que a força esteja com você" (Star Wars)`,
 
-    series: `📺 FONTE OBRIGATÓRIA: Citação DIRETA de uma série de TV
-• Use uma frase marcante de série famosa
-• Pode ser nacional ou internacional
-• Exemplos: "Winter is coming" (Game of Thrones), "How you doin'?" (Friends)
-• OBRIGATÓRIO: Mencione a série entre parênteses`,
+    series: `Use uma frase marcante de série de TV.
+Exemplo: "Winter is coming" (Game of Thrones)`,
 
-    musica: `🎵 FONTE OBRIGATÓRIA: Trecho DIRETO de letra de música
-• Use um verso ou refrão inspirador de música real
-• Pode ser nacional ou internacional, qualquer gênero
-• Exemplos: "Imagine all the people living life in peace" (John Lennon)
-• OBRIGATÓRIO: Mencione artista/banda entre parênteses`,
+    musica: `Use um trecho inspirador de música.
+Exemplo: "Imagine all the people living life in peace" (John Lennon)`,
 
-    default: `🎲 ESCOLHA CRIATIVA DA IA:
-Para a categoria "{theme}", VOCÊ DECIDE qual fonte será mais inspiradora:
-• Filme clássico ou moderno (nacional ou internacional)
-• Música/canção (qualquer artista ou banda)
-• Livro ou autor famoso (literatura mundial)
-• Personalidade histórica ou contemporânea
-• Filosofia, sabedoria popular ou provérbio
-• Versículo bíblico (se apropriado ao tema)
-• Frase original inspiradora`
+    default: `Escolha a fonte mais adequada para "{theme}":
+- Autor/escritor famoso
+- Personalidade histórica
+- Filosofia ou sabedoria popular
+- Filme, música ou série (se apropriado)
+- Versículo bíblico (para temas espirituais)`
   },
 
-  formatInstructions: `📝 FORMATO OBRIGATÓRIO:
+  formatInstructions: `FORMATO:
 {formatExample}`,
 
-  colorPalettes: `🎨 CORES INTELIGENTES POR CATEGORIA:
-• Motivação/Força: #e74c3c + #ffffff + Montserrat
-• Sucesso/Conquista: #27ae60 + #ffffff + Poppins  
-• Amor/Relacionamento: #8e44ad + #f8f9fa + Lato
-• Paz/Tranquilidade: #3498db + #ffffff + Inter
-• Fé/Espiritual: #2c3e50 + #ecf0f1 + Playfair Display
-• Sabedoria/Conhecimento: #8e44ad + #f8f9fa + Crimson Text
-• Felicidade/Alegria: #f39c12 + #ffffff + Poppins
-• Família/União: #e91e63 + #ffffff + Open Sans
-• Trabalho/Carreira: #607d8b + #ffffff + Inter
-• Vida/Existência: #4caf50 + #ffffff + Lato
-• Filme/Cinema: #1a1a2e + #f39c12 + Inter
-• Séries/TV: #16213e + #e74c3c + Poppins
-• Música/Som: #2d1b69 + #f1c40f + Montserrat
+  colorPalettes: `CORES E FONTES:
+Escolha cores harmoniosas baseadas no tema:
+- Motivação: vermelho/laranja + branco
+- Sucesso: verde + branco
+- Amor: roxo/rosa + branco
+- Paz: azul + branco
+- Fé: azul escuro + cinza claro
 
-🔤 FONTES DISPONÍVEIS:
-• Elegante: Playfair Display, Crimson Text
-• Moderna: Montserrat, Poppins, Inter
-• Clássica: Open Sans, Lato`,
+Fontes disponíveis: Inter, Poppins, Montserrat, Lato, Open Sans, Playfair Display`,
 
-  examples: `💡 EXEMPLOS ESPECÍFICOS POR CATEGORIA:
+  examples: `EXEMPLO:
+"O sucesso é ir de fracasso em fracasso sem perder o entusiasmo"
+(Winston Churchill)
 
-🎬 Para "Filme" - CITAÇÕES DIRETAS DE FILMES:
-• "Que a força esteja com você" (Star Wars)
-• "Hakuna Matata - significa viver sem preocupações" (O Rei Leão)
-• "A vida é como uma caixa de chocolates" (Forrest Gump)
-• "Ohana significa família" (Lilo & Stitch)
+Seja criativo e escolha frases que realmente inspirem!{usedQuotesHint}
 
-📺 Para "Séries" - FRASES MARCANTES DE SÉRIES:
-• "Winter is coming" (Game of Thrones)
-• "How you doin'?" (Friends)
-• "That's what she said" (The Office)
-• "I am the one who knocks" (Breaking Bad)
-
-🎵 Para "Música" - TRECHOS DE LETRAS REAIS:
-• "Imagine all the people living life in peace" (John Lennon)
-• "Don't stop believin'" (Journey)
-• "We are the champions, my friends" (Queen)
-• "What doesn't kill you makes you stronger" (Kelly Clarkson)
-
-🎯 Para OUTROS TEMAS - SEJA CRIATIVO:
-• VARIE entre filmes, músicas, livros, pessoas, filosofias
-• EXPLORE qualquer fonte inspiradora para "{theme}"
-• FOQUE na mensagem que conecta com o tema
-• SURPREENDA com escolhas únicas e relevantes
-
-🎲 VARIAÇÃO FORÇADA:
-Use o ID {randomSeed}-{timeStamp}-{currentAttempt} para garantir resposta ÚNICA.
-Tentativa {currentAttempt} de {maxRetries} - seja CRIATIVO e DIFERENTE!{usedQuotesHint}
-
-⚠️ RETORNE APENAS o formato especificado. Nenhum texto adicional.`
+RETORNE APENAS no formato especificado, sem texto adicional.`
 };
 
 // Função para construir o prompt completo
@@ -146,19 +96,31 @@ export function buildPrompt(
   // Definir formato de exemplo
   let formatExample = '';
   if (includeEmojis && includeHashtags) {
-    formatExample = `"Citação única e inspiracional" emoji
-(Autor/Referência Bíblica)
-#hashtag1 #hashtag2 #hashtag3`;
+    formatExample = `"Frase inspiracional" ✨
+(Autor)
+#tema #motivacao #inspiracao
+background: #3498db
+text: #ffffff
+font: Poppins`;
   } else if (includeEmojis) {
-    formatExample = `"Citação única e inspiracional" emoji
-(Autor/Referência Bíblica)`;
+    formatExample = `"Frase inspiracional" ✨
+(Autor)
+background: #3498db
+text: #ffffff
+font: Poppins`;
   } else if (includeHashtags) {
-    formatExample = `"Citação única e inspiracional"
-(Autor/Referência Bíblica)
-#hashtag1 #hashtag2 #hashtag3`;
+    formatExample = `"Frase inspiracional"
+(Autor)
+#tema #motivacao
+background: #3498db
+text: #ffffff
+font: Poppins`;
   } else {
-    formatExample = `"Citação única e inspiracional"
-(Autor/Referência Bíblica)`;
+    formatExample = `"Frase inspiracional"
+(Autor)
+background: #3498db
+text: #ffffff
+font: Poppins`;
   }
 
   // Construir prompt completo
@@ -174,11 +136,6 @@ export function buildPrompt(
   fullPrompt += '\n\n' + promptConfig.formatInstructions.replace('{formatExample}', formatExample);
   fullPrompt += '\n\n' + promptConfig.colorPalettes;
   fullPrompt += '\n\n' + promptConfig.examples
-    .replace('{theme}', theme)
-    .replace('{randomSeed}', randomSeed.toString())
-    .replace('{timeStamp}', timeStamp.toString())
-    .replace('{currentAttempt}', currentAttempt.toString())
-    .replace('{maxRetries}', maxRetries.toString())
     .replace('{usedQuotesHint}', usedQuotesHint);
 
   return fullPrompt;
