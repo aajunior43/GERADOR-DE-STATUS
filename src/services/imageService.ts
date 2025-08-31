@@ -25,15 +25,9 @@ class ImageGenerationService {
   private imageModel;
 
   constructor() {
-    // Usando o modelo Gemini para geração de imagens
+    // Usando o modelo Gemini 2.5 Flash Image Preview para geração de imagens
     this.imageModel = genAI.getGenerativeModel({ 
-      model: 'gemini-2.0-flash',
-      generationConfig: {
-        temperature: 0.7,
-        topK: 32,
-        topP: 1,
-        maxOutputTokens: 4096,
-      }
+      model: 'gemini-2.5-flash-image-preview'
     });
   }
 
@@ -47,20 +41,35 @@ class ImageGenerationService {
       const prompt = this.buildImagePrompt(request.text, request.theme, request.style);
       console.log('📝 Prompt para imagem:', prompt);
 
-      // **Nota: O Gemini atualmente não suporta geração de imagens diretamente**
-      // Vamos usar uma abordagem híbrida com Unsplash + busca inteligente
-      
-      const fallbackImage = await this.generateWithUnsplash(request);
-      
-      return {
-        imageUrl: fallbackImage,
-        prompt,
-        metadata: {
-          model: 'gemini-2.5-flash-image-preview-fallback',
-          timestamp: Date.now(),
-          theme: request.theme
-        }
-      };
+      // Tentar gerar imagem com Gemini 2.5 Flash Image Preview
+      try {
+        const imageUrl = await this.generateWithGemini(prompt);
+        
+        return {
+          imageUrl,
+          prompt,
+          metadata: {
+            model: 'gemini-2.5-flash-image-preview',
+            timestamp: Date.now(),
+            theme: request.theme
+          }
+        };
+      } catch (geminiError) {
+        console.warn('⚠️ Gemini image generation failed, using Unsplash fallback:', geminiError);
+        
+        // Fallback para Unsplash
+        const fallbackImage = await this.generateWithUnsplash(request);
+        
+        return {
+          imageUrl: fallbackImage,
+          prompt,
+          metadata: {
+            model: 'unsplash-fallback',
+            timestamp: Date.now(),
+            theme: request.theme
+          }
+        };
+      }
 
     } catch (error) {
       console.error('❌ Erro ao gerar imagem:', error);
@@ -186,6 +195,66 @@ Requirements:
     };
 
     return themeVisuals[theme.toLowerCase()] || themeVisuals.default;
+  }
+
+  /**
+   * Gera imagem usando Gemini 2.5 Flash Image Preview
+   */
+  private async generateWithGemini(prompt: string): Promise<string> {
+    try {
+      const result = await this.imageModel.generateContent([
+        {
+          text: prompt
+        }
+      ], {
+        generationConfig: {
+          temperature: 0.7,
+          topK: 32,
+          topP: 1,
+          maxOutputTokens: 4096,
+        }
+      });
+
+      // Extrair dados da imagem da resposta
+      const response = await result.response;
+      
+      if (!response.candidates || response.candidates.length === 0) {
+        throw new Error('Nenhuma imagem gerada na resposta');
+      }
+
+      const candidate = response.candidates[0];
+      if (!candidate.content || !candidate.content.parts) {
+        throw new Error('Conteúdo da resposta inválido');
+      }
+
+      // Procurar por dados de imagem inline
+      for (const part of candidate.content.parts) {
+        if (part.inlineData && part.inlineData.data) {
+          // Converter base64 para blob URL
+          const imageData = part.inlineData.data;
+          const mimeType = part.inlineData.mimeType || 'image/png';
+          
+          // Criar blob URL para a imagem
+          const binaryString = atob(imageData);
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) {
+            bytes[i] = binaryString.charCodeAt(i);
+          }
+          
+          const blob = new Blob([bytes], { type: mimeType });
+          const imageUrl = URL.createObjectURL(blob);
+          
+          console.log('✅ Imagem gerada com sucesso pelo Gemini');
+          return imageUrl;
+        }
+      }
+
+      throw new Error('Nenhuma imagem encontrada na resposta do Gemini');
+      
+    } catch (error) {
+      console.error('❌ Erro na geração com Gemini:', error);
+      throw error;
+    }
   }
 
   /**
