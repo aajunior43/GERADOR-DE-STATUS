@@ -47,75 +47,182 @@ export default function Home() {
   };
 
   const downloadImage = () => {
-    // ... função completa de download preservada do arquivo original
     if (!generatedContent) return;
     hapticFeedback.medium();
+    
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    const scale = 2;
-    canvas.width = 360 * scale;
-    canvas.height = 640 * scale;
-    ctx.scale(scale, scale);
+    // Configuração de alta qualidade
+    const scale = 3; // Aumentado para melhor qualidade
+    const width = 1080; // Resolução HD para Instagram/WhatsApp
+    const height = 1920;
+    canvas.width = width;
+    canvas.height = height;
+    
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
-    const gradient = ctx.createLinearGradient(0, 0, 360, 640);
+    // Background com gradiente melhorado
+    const gradient = ctx.createLinearGradient(0, 0, width, height);
     const baseColor = generatedContent.backgroundColor;
-    gradient.addColorStop(0, adjustBrightness(baseColor, 10));
-    gradient.addColorStop(0.3, baseColor);
-    gradient.addColorStop(0.7, adjustBrightness(baseColor, -15));
-    gradient.addColorStop(1, adjustBrightness(baseColor, -30));
+    gradient.addColorStop(0, adjustBrightness(baseColor, 20));
+    gradient.addColorStop(0.2, adjustBrightness(baseColor, 10));
+    gradient.addColorStop(0.5, baseColor);
+    gradient.addColorStop(0.8, adjustBrightness(baseColor, -10));
+    gradient.addColorStop(1, adjustBrightness(baseColor, -25));
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, 360, 640);
+    ctx.fillRect(0, 0, width, height);
 
+    // Adicionar elementos decorativos modernos
+    drawDecorativeElements(ctx, width, height, baseColor);
+
+    // Vinheta melhorada
     if (includeVignette) {
-      const vignetteGradient = ctx.createRadialGradient(180, 320, 0, 180, 320, 450);
+      const vignetteGradient = ctx.createRadialGradient(width/2, height/2, 0, width/2, height/2, width * 0.8);
       vignetteGradient.addColorStop(0, 'rgba(0, 0, 0, 0)');
-      vignetteGradient.addColorStop(0.6, 'rgba(0, 0, 0, 0.05)');
-      vignetteGradient.addColorStop(0.8, 'rgba(0, 0, 0, 0.2)');
-      vignetteGradient.addColorStop(1, 'rgba(0, 0, 0, 0.7)');
+      vignetteGradient.addColorStop(0.6, 'rgba(0, 0, 0, 0.1)');
+      vignetteGradient.addColorStop(0.85, 'rgba(0, 0, 0, 0.3)');
+      vignetteGradient.addColorStop(1, 'rgba(0, 0, 0, 0.6)');
       ctx.fillStyle = vignetteGradient;
-      ctx.fillRect(0, 0, 360, 640);
+      ctx.fillRect(0, 0, width, height);
     }
 
-    ctx.fillStyle = generatedContent.textColor;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const canvasFont = generatedContent.fontFamily.includes('Playfair') ? 'serif' : 'sans-serif';
-    let fontSize = generatedContent.fontSize || 24;
-    
-    const paragraphs = generatedContent.text.split('\n').filter((p: string) => p.trim());
-    ctx.font = `bold ${fontSize}px ${canvasFont}`;
-    
-    const y = 320;
-    const maxWidth = 280;
-    const lineHeight = fontSize * 1.2;
-    let currentY = y - ((paragraphs.length - 1) * lineHeight) / 2;
-    
-    paragraphs.forEach((paragraph: string) => {
-      ctx.fillText(paragraph.trim(), 180, currentY);
-      currentY += lineHeight;
-    });
+    // Área de texto com sombra e melhor tipografia
+    drawEnhancedText(ctx, generatedContent, width, height);
 
+    // Download em alta qualidade
     const link = document.createElement('a');
     const timestamp = new Date().toISOString().slice(0, 10);
-    link.download = `status-${theme.toLowerCase().replace(/\s+/g, '-')}-${timestamp}.png`;
-    link.href = canvas.toDataURL('image/png', 1.0);
+    link.download = `status-hd-${theme.toLowerCase().replace(/\s+/g, '-')}-${timestamp}.png`;
+    link.href = canvas.toDataURL('image/png', 0.95);
     link.click();
-    showToast('Imagem baixada!', 'success');
+    showToast('Imagem HD baixada!', 'success');
+  };
+
+  // Função para desenhar elementos decorativos
+  const drawDecorativeElements = (ctx: CanvasRenderingContext2D, width: number, height: number, baseColor: string) => {
+    ctx.save();
+    
+    // Círculos decorativos sutis
+    const circleColor = adjustBrightness(baseColor, 15);
+    ctx.fillStyle = circleColor + '15'; // 15 = baixa opacidade
+    
+    // Círculo grande no topo direito
+    ctx.beginPath();
+    ctx.arc(width * 0.8, height * 0.15, width * 0.25, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Círculo médio no canto inferior esquerdo
+    ctx.beginPath();
+    ctx.arc(width * 0.2, height * 0.85, width * 0.15, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Linhas decorativas sutis
+    ctx.strokeStyle = adjustBrightness(baseColor, 25) + '20';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([20, 10]);
+    
+    // Linha diagonal superior
+    ctx.beginPath();
+    ctx.moveTo(0, height * 0.25);
+    ctx.lineTo(width * 0.4, height * 0.1);
+    ctx.stroke();
+    
+    // Linha diagonal inferior
+    ctx.beginPath();
+    ctx.moveTo(width * 0.6, height * 0.9);
+    ctx.lineTo(width, height * 0.75);
+    ctx.stroke();
+    
+    ctx.restore();
+  };
+
+  // Função para texto melhorado com sombra e efeitos
+  const drawEnhancedText = (ctx: CanvasRenderingContext2D, content: any, width: number, height: number) => {
+    ctx.save();
+    
+    const paragraphs = content.text.split('\n').filter((p: string) => p.trim());
+    const fontSize = Math.min(width * 0.08, 80); // Fonte responsiva
+    const fontFamily = getFontFamily(content.fontFamily);
+    
+    ctx.font = `bold ${fontSize}px ${fontFamily}`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    
+    const centerY = height / 2;
+    const lineHeight = fontSize * 1.4;
+    const totalTextHeight = paragraphs.length * lineHeight;
+    let currentY = centerY - (totalTextHeight / 2) + (lineHeight / 2);
+    
+    paragraphs.forEach((paragraph: string) => {
+      const text = paragraph.trim();
+      
+      // Sombra do texto
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+      ctx.fillText(text, width/2 + 4, currentY + 4);
+      
+      // Texto principal
+      ctx.fillStyle = content.textColor;
+      ctx.fillText(text, width/2, currentY);
+      
+      currentY += lineHeight;
+    });
+    
+    // Adicionar uma linha decorativa abaixo do texto se houver autor
+    if (content.text.includes('(')) {
+      ctx.strokeStyle = content.textColor + '60';
+      ctx.lineWidth = 4;
+      ctx.setLineDash([]);
+      
+      const lineY = currentY + 30;
+      const lineWidth = width * 0.2;
+      
+      ctx.beginPath();
+      ctx.moveTo(width/2 - lineWidth/2, lineY);
+      ctx.lineTo(width/2 + lineWidth/2, lineY);
+      ctx.stroke();
+    }
+    
+    ctx.restore();
+  };
+
+  // Função para mapear fontes do sistema
+  const getFontFamily = (fontName: string): string => {
+    const fontMap: Record<string, string> = {
+      'Inter': 'Inter, system-ui, sans-serif',
+      'Playfair Display': 'Georgia, serif',
+      'Montserrat': 'system-ui, sans-serif',
+      'Poppins': 'system-ui, sans-serif',
+      'Lato': 'system-ui, sans-serif',
+      'Open Sans': 'system-ui, sans-serif',
+      'Crimson Text': 'Georgia, serif'
+    };
+    return fontMap[fontName] || 'system-ui, sans-serif';
   };
 
   const adjustBrightness = (hex: string, percent: number): string => {
-    const num = parseInt(hex.replace('#', ''), 16);
+    // Remove '#' se presente
+    const cleanHex = hex.replace('#', '');
+    
+    // Parse RGB
+    const num = parseInt(cleanHex, 16);
     const amt = Math.round(2.55 * percent);
-    const R = (num >> 16) + amt;
-    const G = (num >> 8 & 0x00FF) + amt;
-    const B = (num & 0x0000FF) + amt;
-    return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
-      (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
-      (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
+    
+    // Extrair componentes RGB
+    let R = (num >> 16) + amt;
+    let G = (num >> 8 & 0x00FF) + amt;
+    let B = (num & 0x0000FF) + amt;
+    
+    // Garantir que os valores estejam entre 0 e 255
+    R = Math.max(0, Math.min(255, R));
+    G = Math.max(0, Math.min(255, G));
+    B = Math.max(0, Math.min(255, B));
+    
+    // Converter de volta para hex
+    const result = '#' + ((1 << 24) + (R << 16) + (G << 8) + B).toString(16).slice(1);
+    return result;
   };
 
   const quickThemes = [
