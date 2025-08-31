@@ -14,7 +14,7 @@ interface WhatsAppWebhook {
 
 class WhatsAppService {
   private baseUrl = 'https://api-whatsapp.api-alisson.com.br/api/v1';
-  private token = '4n8g8JO7vtQbXSvJW61WtdAemw6PaQ5m';
+  private token = '4h8g8JO7vtQbXSvJW61WtdAemw6PaQ5m';
   private uuid = process.env.WHATSAPP_UUID || '5d8b1d72-8b27-4910-990a-701a0be2b9d5'; // UUID da instância
 
   /**
