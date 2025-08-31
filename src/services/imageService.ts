@@ -25,8 +25,16 @@ class ImageGenerationService {
   private imageModel;
 
   constructor() {
-    // Usando o modelo Gemini 2.5 Flash Image Preview
-    this.imageModel = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    // Usando o modelo Gemini para geração de imagens
+    this.imageModel = genAI.getGenerativeModel({ 
+      model: 'gemini-2.0-flash',
+      generationConfig: {
+        temperature: 0.7,
+        topK: 32,
+        topP: 1,
+        maxOutputTokens: 4096,
+      }
+    });
   }
 
   /**

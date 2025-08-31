@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useGeminiService } from '@/services/geminiService';
+import { useImageGeneration } from '@/services/imageService';
 import { useSwipe } from '@/hooks/useSwipe';
 import { hapticFeedback } from '@/utils/haptics';
 import { useToast } from '@/components/Toast';
@@ -15,8 +16,8 @@ export default function Home() {
   const [includeHashtags, setIncludeHashtags] = useState(false);
   const [includeVignette, setIncludeVignette] = useState(false);
   const [includeBackground, setIncludeBackground] = useState(false);
-  const [currentThemeIndex, setCurrentThemeIndex] = useState(0);
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+  const [currentThemeIndex, setCurrentThemeIndex] = useState(0);
 
   const { showToast, ToastContainer } = useToast();
 
@@ -27,6 +28,8 @@ export default function Home() {
 
     try {
       const geminiService = useGeminiService();
+      const imageService = useImageGeneration();
+
       const response = await geminiService.generateStatus({
         theme, style: 'modern', aspectRatio: '9:16',
         includeComplementaryPhrase: false, includeHashtags, includeEmojis, includeVignette,
@@ -36,7 +39,20 @@ export default function Home() {
 
       // Gerar imagem de fundo se solicitado
       if (includeBackground) {
-        await generateBackgroundImage(response.generatedContent.text, theme);
+        try {
+          console.log('🖼️ Gerando imagem de fundo...');
+          const imageResponse = await imageService.generateBackgroundImage({
+            text: response.generatedContent.text,
+            theme: theme,
+            style: 'realistic',
+            aspectRatio: '9:16'
+          });
+          setBackgroundImage(imageResponse.imageUrl);
+          console.log('✅ Imagem de fundo gerada:', imageResponse.imageUrl);
+        } catch (imageError) {
+          console.warn('⚠️ Erro ao gerar imagem de fundo, continuando sem imagem:', imageError);
+          setBackgroundImage(null);
+        }
       } else {
         setBackgroundImage(null);
       }
@@ -57,82 +73,6 @@ export default function Home() {
     }
   };
 
-  // Função para gerar imagem de fundo usando serviço inteligente
-  const generateBackgroundImage = async (text: string, theme: string) => {
-    try {
-      const { imageGenerationService } = await import('@/services/imageService');
-      
-      console.log('🎨 Gerando imagem de fundo para:', { text: text.substring(0, 50), theme });
-      
-      const response = await imageGenerationService.generateBackgroundImage({
-        text,
-        theme,
-        style: 'artistic',
-        aspectRatio: '9:16'
-      });
-      
-      console.log('✅ Imagem gerada:', response.imageUrl);
-      setBackgroundImage(response.imageUrl);
-      
-      return response.imageUrl;
-    } catch (error) {
-      console.error('❌ Erro ao gerar imagem de fundo:', error);
-      // Fallback para imagem genérica
-      const fallbackUrl = getFallbackImage(theme);
-      setBackgroundImage(fallbackUrl);
-      return fallbackUrl;
-    }
-  };
-
-  // Extrair palavras-chave inteligentes do texto e tema
-  const extractKeywords = (text: string, theme: string): string[] => {
-    const themeKeywords: Record<string, string[]> = {
-      'motivação': ['motivation', 'success', 'achievement', 'inspiration'],
-      'motivacao': ['motivation', 'success', 'achievement', 'inspiration'],
-      'amor': ['love', 'romance', 'heart', 'couple'],
-      'sucesso': ['success', 'business', 'achievement', 'victory'],
-      'paz': ['peace', 'nature', 'calm', 'zen'],
-      'força': ['strength', 'power', 'energy', 'determination'],
-      'forca': ['strength', 'power', 'energy', 'determination'],
-      'felicidade': ['happiness', 'joy', 'smile', 'celebration'],
-      'família': ['family', 'home', 'together', 'love'],
-      'familia': ['family', 'home', 'together', 'love'],
-      'trabalho': ['work', 'office', 'business', 'professional'],
-      'vida': ['life', 'nature', 'journey', 'growth'],
-      'fé': ['faith', 'spiritual', 'hope', 'light'],
-      'fe': ['faith', 'spiritual', 'hope', 'light'],
-    };
-
-    const baseKeywords = themeKeywords[theme.toLowerCase()] || ['abstract', 'minimal'];
-    
-    // Adicionar palavras do texto (filtrar palavras importantes)
-    const textWords = text.toLowerCase()
-      .replace(/[^\w\s]/g, ' ')
-      .split(' ')
-      .filter(word => word.length > 3)
-      .slice(0, 2);
-    
-    return [...baseKeywords, ...textWords].slice(0, 4);
-  };
-
-  // Imagens de fallback baseadas no tema
-  const getFallbackImage = (theme: string): string => {
-    const fallbacks: Record<string, string> = {
-      'motivação': 'https://source.unsplash.com/1080x1920/?mountain,success&orientation=portrait',
-      'motivacao': 'https://source.unsplash.com/1080x1920/?mountain,success&orientation=portrait',
-      'amor': 'https://source.unsplash.com/1080x1920/?sunset,couple&orientation=portrait',
-      'sucesso': 'https://source.unsplash.com/1080x1920/?business,achievement&orientation=portrait',
-      'paz': 'https://source.unsplash.com/1080x1920/?nature,calm&orientation=portrait',
-      'força': 'https://source.unsplash.com/1080x1920/?strength,power&orientation=portrait',
-      'forca': 'https://source.unsplash.com/1080x1920/?strength,power&orientation=portrait',
-      'felicidade': 'https://source.unsplash.com/1080x1920/?joy,happiness&orientation=portrait',
-      'família': 'https://source.unsplash.com/1080x1920/?family,home&orientation=portrait',
-      'familia': 'https://source.unsplash.com/1080x1920/?family,home&orientation=portrait',
-      'default': 'https://source.unsplash.com/1080x1920/?abstract,minimal&orientation=portrait'
-    };
-    
-    return fallbacks[theme.toLowerCase()] || fallbacks.default;
-  };
 
   const downloadImage = async () => {
     if (!generatedContent) return;
@@ -152,13 +92,32 @@ export default function Home() {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = 'high';
 
-    // Aplicar imagem de fundo se disponível
+    // Background - imagem ou gradiente
     if (backgroundImage && includeBackground) {
       try {
-        await drawBackgroundImage(ctx, width, height, backgroundImage);
+        // Carregar e desenhar imagem de fundo
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        await new Promise<void>((resolve, reject) => {
+          img.onload = () => resolve();
+          img.onerror = () => reject(new Error('Falha ao carregar imagem'));
+          img.src = backgroundImage;
+        });
+        
+        // Desenhar imagem ajustada ao canvas
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Adicionar overlay para melhor legibilidade do texto
+        const overlay = ctx.createLinearGradient(0, 0, 0, height);
+        overlay.addColorStop(0, 'rgba(0, 0, 0, 0.3)');
+        overlay.addColorStop(0.5, 'rgba(0, 0, 0, 0.1)');
+        overlay.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
+        ctx.fillStyle = overlay;
+        ctx.fillRect(0, 0, width, height);
+        
       } catch (error) {
-        console.warn('Erro ao aplicar imagem de fundo, usando gradiente:', error);
-        // Fallback para gradiente se imagem falhar
+        console.warn('⚠️ Erro ao carregar imagem de fundo, usando gradiente:', error);
+        // Fallback para gradiente
         const gradient = ctx.createLinearGradient(0, 0, width, height);
         const baseColor = generatedContent.backgroundColor;
         gradient.addColorStop(0, adjustBrightness(baseColor, 20));
@@ -170,7 +129,7 @@ export default function Home() {
         ctx.fillRect(0, 0, width, height);
       }
     } else {
-      // Background com gradiente melhorado (fallback)
+      // Background com gradiente melhorado
       const gradient = ctx.createLinearGradient(0, 0, width, height);
       const baseColor = generatedContent.backgroundColor;
       gradient.addColorStop(0, adjustBrightness(baseColor, 20));
@@ -182,11 +141,9 @@ export default function Home() {
       ctx.fillRect(0, 0, width, height);
     }
 
-    // Adicionar elementos decorativos modernos (apenas se não houver imagem de fundo)
-    if (!backgroundImage || !includeBackground) {
-      const baseColor = generatedContent.backgroundColor;
-      drawDecorativeElements(ctx, width, height, baseColor);
-    }
+    // Adicionar elementos decorativos modernos
+    const baseColor = generatedContent.backgroundColor;
+    drawDecorativeElements(ctx, width, height, baseColor);
 
     // Vinheta melhorada
     if (includeVignette) {
@@ -200,7 +157,7 @@ export default function Home() {
     }
 
     // Área de texto com sombra e melhor tipografia
-    drawEnhancedText(ctx, generatedContent, width, height);
+    drawEnhancedText(ctx, generatedContent, width, height, backgroundImage, includeBackground);
 
     // Download em alta qualidade
     const link = document.createElement('a');
@@ -211,67 +168,6 @@ export default function Home() {
     showToast('Imagem HD baixada!', 'success');
   };
 
-  // Função para desenhar imagem de fundo
-  const drawBackgroundImage = async (ctx: CanvasRenderingContext2D, width: number, height: number, imageUrl: string): Promise<void> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.crossOrigin = 'anonymous';
-      
-      img.onload = () => {
-        try {
-          // Desenhar imagem cobrindo todo o canvas mantendo proporção
-          const imgAspect = img.width / img.height;
-          const canvasAspect = width / height;
-          
-          let drawWidth, drawHeight, drawX, drawY;
-          
-          if (imgAspect > canvasAspect) {
-            // Imagem mais larga que o canvas
-            drawHeight = height;
-            drawWidth = height * imgAspect;
-            drawX = (width - drawWidth) / 2;
-            drawY = 0;
-          } else {
-            // Imagem mais alta que o canvas
-            drawWidth = width;
-            drawHeight = width / imgAspect;
-            drawX = 0;
-            drawY = (height - drawHeight) / 2;
-          }
-          
-          ctx.drawImage(img, drawX, drawY, drawWidth, drawHeight);
-          
-          // Aplicar overlay semi-transparente para melhor legibilidade do texto
-          const overlayGradient = ctx.createLinearGradient(0, 0, 0, height);
-          overlayGradient.addColorStop(0, 'rgba(0, 0, 0, 0.3)');
-          overlayGradient.addColorStop(0.5, 'rgba(0, 0, 0, 0.1)');
-          overlayGradient.addColorStop(1, 'rgba(0, 0, 0, 0.4)');
-          
-          ctx.fillStyle = overlayGradient;
-          ctx.fillRect(0, 0, width, height);
-          
-          console.log('✅ Imagem de fundo aplicada com sucesso');
-          resolve();
-        } catch (error) {
-          console.error('❌ Erro ao desenhar imagem:', error);
-          reject(error);
-        }
-      };
-      
-      img.onerror = (error) => {
-        console.error('❌ Erro ao carregar imagem de fundo:', error);
-        reject(error);
-      };
-      
-      img.src = imageUrl;
-      
-      // Timeout de 10 segundos
-      setTimeout(() => {
-        console.warn('⏱️ Timeout ao carregar imagem de fundo');
-        reject(new Error('Timeout'));
-      }, 10000);
-    });
-  };
 
   // Função para desenhar elementos decorativos
   const drawDecorativeElements = (ctx: CanvasRenderingContext2D, width: number, height: number, baseColor: string) => {
@@ -312,7 +208,7 @@ export default function Home() {
   };
 
   // Função para texto melhorado com sombra e efeitos
-  const drawEnhancedText = (ctx: CanvasRenderingContext2D, content: any, width: number, height: number) => {
+  const drawEnhancedText = (ctx: CanvasRenderingContext2D, content: any, width: number, height: number, backgroundImage: string | null = null, includeBackground: boolean = false) => {
     ctx.save();
     
     const paragraphs = content.text.split('\n').filter((p: string) => p.trim());
@@ -331,12 +227,17 @@ export default function Home() {
     paragraphs.forEach((paragraph: string) => {
       const text = paragraph.trim();
       
-      // Sombra do texto
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-      ctx.fillText(text, width/2 + 4, currentY + 4);
+      // Sombra do texto (mais forte se há imagem de fundo)
+      if (backgroundImage && includeBackground) {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+        ctx.fillText(text, width/2 + 3, currentY + 3);
+      } else {
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillText(text, width/2 + 2, currentY + 2);
+      }
       
       // Texto principal
-      ctx.fillStyle = content.textColor;
+      ctx.fillStyle = backgroundImage && includeBackground ? '#ffffff' : content.textColor;
       ctx.fillText(text, width/2, currentY);
       
       currentY += lineHeight;
@@ -344,7 +245,7 @@ export default function Home() {
     
     // Adicionar uma linha decorativa abaixo do texto se houver autor
     if (content.text.includes('(')) {
-      ctx.strokeStyle = content.textColor + '60';
+      ctx.strokeStyle = (backgroundImage && includeBackground ? '#ffffff' : content.textColor) + '60';
       ctx.lineWidth = 4;
       ctx.setLineDash([]);
       
